@@ -1,7 +1,6 @@
 package Waiters;
 
 import End.EndIsNear;
-import Start.StartIsHere;
 
 import java.io.*;
 import java.nio.channels.FileChannel;
@@ -16,14 +15,16 @@ public class Main {
             System.err.println("Программа уже запущена! Выход...");
             return;
         }
-        while (ATTEMPTS <= 3) {
-            ATTEMPTS++;
-            {
-                StartIsHere.start();
-                sleep(10);
-                EndIsNear.end();
-            }
-        }
+//        while (ATTEMPTS <= 3) {
+//            ATTEMPTS++;
+//            {
+//                StartIsHere.start();
+//                sleep(1);
+//                EndIsNear.end();
+//            }
+//        }
+
+        EndIsNear.end();
     }
 
     private static void sleep(long minutes) {

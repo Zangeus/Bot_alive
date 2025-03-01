@@ -60,8 +60,9 @@ public class EndIsNear {
                 scheduler.shutdownNow();
             }
 
-            if (!FindButtonAndPress.findAndClick(extractResource("/stop.png")))
+            if (!FindButtonAndPress.findAndClick(extractResource("/stop.png"))) {
                 getResponse(false);
+            }
 
             getResponse(FindButtonAndPress.findAndClick(extractResource("/tasks_done.png")));
 
@@ -119,8 +120,8 @@ public class EndIsNear {
         TelegramBotSender.sendMessage(success ? successResponse : failureResponse);
         turnOff();
         CloseProcess.close("MuMuPlayer.exe");
-        CloseProcess.close("MuMuVMMHeadless.exe");
-        CloseProcess.close("src");
+//        CloseProcess.close("MuMuVMMHeadless.exe");
+//        CloseProcess.close("src");
         System.exit(0);
     }
 
