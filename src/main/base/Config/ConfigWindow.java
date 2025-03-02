@@ -25,6 +25,7 @@ public class ConfigWindow extends JFrame {
     private JTextArea successMessagesArea;
     private JTextArea failureMessagesArea;
     private JTextArea reportMessagesArea;
+    private JSpinner sleepDurationSpinner;
 
     public ConfigWindow() {
         config = ConfigManager.loadConfig();
@@ -89,7 +90,8 @@ public class ConfigWindow extends JFrame {
     }
 
     private JPanel createGeneralPanel() {
-        JPanel panel = new JPanel(new GridLayout(4, 2, 5, 5));
+        //JPanel panel = new JPanel(new GridLayout(4, 2, 5, 5));
+        JPanel panel = new JPanel(new GridLayout(5, 2, 5, 5));
 
         attemptsSpinner = new JSpinner(
                 new SpinnerNumberModel(config.getAttemptsAmount(), 1, 100, 1));
@@ -103,6 +105,13 @@ public class ConfigWindow extends JFrame {
         panel.add(successCheck);
         panel.add(failureCheck);
         panel.add(reportCheck);
+
+        sleepDurationSpinner = new JSpinner(
+                new SpinnerNumberModel(config.getSleepDurationMinutes(), 1, 1440, 1)
+        );
+
+        panel.add(new JLabel("Длительность сна (минут):"));
+        panel.add(sleepDurationSpinner);
 
         return panel;
     }
@@ -161,6 +170,7 @@ public class ConfigWindow extends JFrame {
         config.setSuccessMessages(Arrays.asList(successMessagesArea.getText().split("\n")));
         config.setFailureMessages(Arrays.asList(failureMessagesArea.getText().split("\n")));
         config.setReportMessages(Arrays.asList(reportMessagesArea.getText().split("\n")));
+        config.setSleepDurationMinutes((Integer) sleepDurationSpinner.getValue());
 
         ConfigManager.saveConfig(config);
         JOptionPane.showMessageDialog(this, "Настройки сохранены!");
@@ -193,8 +203,8 @@ public class ConfigWindow extends JFrame {
     private void createDefaultReadme(File readmeFile) throws IOException {
         try (FileWriter writer = new FileWriter(readmeFile)) {
             writer.write("# Руководство пользователя\n\n");
-            writer.write("Добро пожаловать в приложение!\n");
-            writer.write("Здесь будет основная документация...\n");
+            writer.write("Основные файлы конфигурации должны находиться в папке `bot_sources`\n");
+            writer.write("Полная документация доступна по [ссылке](google.com)");
         }
     }
 

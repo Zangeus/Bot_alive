@@ -25,6 +25,16 @@ public class LauncherConfig {
     // Новые поля
     private boolean notificationsEnabled = true;
     private boolean reportWithScreenshot = false;
+    private int sleepDurationMinutes = 12; // Значение по умолчанию
+
+    public int getSleepDurationMinutes() {
+        return sleepDurationMinutes;
+    }
+
+    public void setSleepDurationMinutes(int sleepDurationMinutes) {
+        this.sleepDurationMinutes = sleepDurationMinutes;
+    }
+
 
     // Геттеры для новых полей
     public boolean isNotificationsEnabled() {
@@ -170,6 +180,7 @@ public class LauncherConfig {
                 "successNotification=" + successNotification +
                 ", failureNotification=" + failureNotification +
                 ", reportNotification=" + reportNotification +
+                ", sleepDurationMinutes=" + sleepDurationMinutes +
                 "}";
     }
 }

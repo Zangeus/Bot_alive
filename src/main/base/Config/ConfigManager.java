@@ -6,7 +6,7 @@ import java.io.File;
 import java.io.IOException;
 
 public class ConfigManager {
-    private static final String CONFIG_FILE = "app_config.json";
+    private static final String CONFIG_FILE = "bot_sources/app_config.json";
     private static final ObjectMapper mapper = new ObjectMapper();
 
     public static LauncherConfig loadConfig() {

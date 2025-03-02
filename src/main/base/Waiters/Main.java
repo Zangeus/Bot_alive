@@ -32,7 +32,8 @@ public class Main {
                 System.out.println("\n=== Попытка #" + (ATTEMPTS + 1) + " ===");
                 StartIsHere.start();
 
-                sleep(10 * 60);
+                sleep(config.getSleepDurationMinutes() * 60);
+
                 boolean attemptResult = false;
                 try {
                     attemptResult = EndIsNear.end();
