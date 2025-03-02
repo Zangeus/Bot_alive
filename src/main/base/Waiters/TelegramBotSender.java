@@ -1,171 +1,139 @@
 package Waiters;
 
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
+import Config.ConfigManager;
+import Config.LauncherConfig;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import static Waiters.Extractor.captureScreenshot;
-import static Waiters.Extractor.sendPhotoWithCaption;
-
 public class TelegramBotSender {
+    private static final LauncherConfig config = ConfigManager.loadConfig();
+    private static final Random random = new Random();
+    private static final String API_URL = "https://api.telegram.org/bot";
 
-    public static final String BOT_TOKEN;
-    public static final String CHAT_ID;
+    public static void sendMessages(List<String> messages) {
+        if (!validateConfig()) return;
 
-    static {
-        try {
-            String[] telegramData =
-                    readBotConfig("bot_sources/botAccess.txt");
-
-            BOT_TOKEN = telegramData[0];
-            CHAT_ID = telegramData[1];
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static final List<String> successMessages;
-    private static final List<String> failureMessages;
-    private static final List<String> reportMessages;
-
-    static {
-        try {
-            successMessages = readMessagesFromFile("bot_sources/success_messages.txt");
-            failureMessages = readMessagesFromFile("bot_sources/failure_messages.txt");
-            reportMessages = readMessagesFromFile("bot_sources/report_messages.txt");
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            throw new RuntimeException("Failed to load messages", e);
-        }
-    }
-
-    public static void sendMessage(Boolean response) {
-        if (response == null) return;
-
-        try {
-            String message;
-            if (response) {
-                message = getRandomMessage(successMessages);
-                sendTextMessage(message);
-            } else if (Main.ATTEMPTS < 3) {
-                message = getRandomMessage(reportMessages);
-                handleReportMessage(message);
-            } else {
-                message = getRandomMessage(failureMessages);
-                sendTextMessage(message);
-            }
-        } catch (Exception e) {
-            System.out.println("Ошибка отправки: " + e.getMessage());
-        }
-    }
-
-    private static void handleReportMessage(String message) {
-        try {
-            byte[] screenshot = captureScreenshot();
-            sendPhotoWithCaption(screenshot, message);
-        } catch (Exception e) {
-            System.out.println("Ошибка скриншота: " + e.getMessage());
-            sendTextMessage(message);
-        }
-    }
-
-    private static void sendTextMessage(String message) {
-        if (isInvalidMessage(message)) return;
-
-        String encodedMessage = URLEncoder.encode(message, StandardCharsets.UTF_8);
-        String postData = "chat_id=" + CHAT_ID + "&text=" + encodedMessage;
-
-        try {
-            executePostRequest("sendMessage", postData);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static void executePostRequest(String method, String postData) throws IOException {
-        String urlString = "https://api.telegram.org/bot" + BOT_TOKEN + "/" + method;
-        URL url = new URL(urlString);
-
-        HttpURLConnection connection = null;
-        try {
-            connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("POST");
-            connection.setDoOutput(true);
-
-            try (OutputStream os = connection.getOutputStream()) {
-                os.write(postData.getBytes(StandardCharsets.UTF_8));
-            }
-
-            handleResponse(connection);
-        } finally {
-            if (connection != null) {
-                connection.disconnect();
-            }
-        }
-    }
-
-    private static void handleResponse(HttpURLConnection connection) throws IOException {
-        int responseCode = connection.getResponseCode();
-        String method = connection.getURL().getPath().contains("sendPhoto") ? "Фото" : "Сообщение";
-
-        if (responseCode == HttpURLConnection.HTTP_OK) {
-            System.out.println(method + " успешно отправлено!");
-        } else {
-            System.out.println("Ошибка отправки " + method + ". Код: " + responseCode);
-        }
-    }
-
-    private static boolean isInvalidMessage(String message) {
+        String message = getRandomMessage(messages);
         if (message == null || message.isEmpty()) {
             System.out.println("Пустое сообщение - отправка отменена");
-            return true;
+            return;
         }
-        return false;
+
+        sendRequest("sendMessage", "text", message);
+    }
+
+    public static void sendReportWithScreenshot(List<String> messages) {
+        if (!validateConfig()) return;
+
+        try {
+            byte[] screenshot = Extractor.captureScreenshot();
+            String caption = getRandomMessage(messages);
+            Extractor.sendPhotoWithCaption(
+                    screenshot,
+                    caption,
+                    config.getBotToken(),
+                    config.getChatId()
+            );
+        } catch (Exception e) {
+            System.err.println("Ошибка отправки отчета: " + e.getMessage());
+            sendMessages(messages);
+        }
+    }
+
+    private static boolean validateConfig() {
+        if (config.getBotToken() == null || config.getBotToken().isEmpty()) {
+            System.err.println("Токен бота не настроен!");
+            return false;
+        }
+
+        if (config.getChatId() == null || config.getChatId().isEmpty()) {
+            System.err.println("Chat ID не настроен!");
+            return false;
+        }
+
+        return true;
     }
 
     private static String getRandomMessage(List<String> messages) {
         if (messages == null || messages.isEmpty()) {
             return "Нет доступных сообщений";
         }
-        Random random = new Random();
         return messages.get(random.nextInt(messages.size()));
     }
 
-    private static List<String> readMessagesFromFile(String fileName) throws Exception {
-        List<String> messages = new ArrayList<>();
-        try (InputStream is = TelegramBotSender.class.getResourceAsStream(fileName)) {
-            if (is == null) {
-                throw new FileNotFoundException("Файл не найден: " + fileName);
-            }
-            BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (!line.trim().isEmpty()) {
-                    messages.add(line.trim());
-                }
-            }
+    private static void sendRequest(String method, String paramType, String content) {
+        try {
+            String urlString = API_URL + config.getBotToken() + "/" + method;
+            String postData = String.format(
+                    "chat_id=%s&%s=%s",
+                    URLEncoder.encode(config.getChatId(), StandardCharsets.UTF_8),
+                    paramType,
+                    URLEncoder.encode(content, StandardCharsets.UTF_8)
+            );
+
+            HttpURLConnection connection = createConnection(urlString);
+            sendPostData(connection, postData);
+            handleResponse(connection);
+        } catch (Exception e) {
+            System.err.println("Ошибка отправки сообщения: " + e.getMessage());
         }
-        return messages;
     }
 
-    public static String[] readBotConfig(String fileName) throws IOException {
-        File file = new File(fileName);
-        if (!file.exists()) {
-            throw new IOException("Конфигурационный файл бота не найден: " + fileName);
-        }
+    private static HttpURLConnection createConnection(String urlString) throws IOException {
+        URL url = new URL(urlString);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("POST");
+        connection.setDoOutput(true);
+        connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+        return connection;
+    }
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String botToken = reader.readLine(); // Первая строка — токен бота
-            String chatId = reader.readLine();   // Вторая строка — ID чата
-            if (botToken == null || chatId == null) {
-                throw new IOException("Конфигурационный файл бота неполный: требуется токен и идентификатор чата.");
-            }
-            return new String[]{botToken, chatId};
+    private static void sendPostData(HttpURLConnection connection, String postData) throws IOException {
+        try (OutputStream os = connection.getOutputStream()) {
+            byte[] input = postData.getBytes(StandardCharsets.UTF_8);
+            os.write(input, 0, input.length);
         }
+    }
+
+    private static void handleResponse(HttpURLConnection connection) throws IOException {
+        int responseCode = connection.getResponseCode();
+        if (responseCode != HttpURLConnection.HTTP_OK) {
+            System.err.println("Ошибка Telegram API. Код: " + responseCode);
+            readErrorResponse(connection);
+        }
+        connection.disconnect();
+    }
+
+    private static void readErrorResponse(HttpURLConnection connection) {
+        try (BufferedReader br = new BufferedReader(
+                new InputStreamReader(connection.getErrorStream(), StandardCharsets.UTF_8)
+        )) {
+            StringBuilder response = new StringBuilder();
+            String responseLine;
+            while ((responseLine = br.readLine()) != null) {
+                response.append(responseLine.trim());
+            }
+            System.err.println("Ответ сервера: " + response);
+        } catch (IOException e) {
+            System.err.println("Ошибка чтения ответа об ошибке: " + e.getMessage());
+        }
+    }
+
+    // Метод для прямой отправки фото (используется в Extractor)
+    static void sendPhoto(byte[] imageBytes, String caption) throws IOException {
+        if (!validateConfig()) return;
+
+        Extractor.sendPhotoWithCaption(
+                imageBytes,
+                caption,
+                config.getBotToken(),
+                config.getChatId()
+        );
     }
 }

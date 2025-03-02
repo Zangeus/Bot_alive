@@ -3,7 +3,7 @@ package End;
 import java.io.IOException;
 
 public class CloseProcess {
-    public static void close(String processName) {
+    public static void terminate(String processName) {
         try {
             ProcessBuilder processBuilder = new ProcessBuilder("tasklist");
             Process process = processBuilder.start();

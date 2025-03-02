@@ -8,23 +8,23 @@ import java.nio.channels.FileLock;
 
 public class Main {
     private static final String LOCK_FILE = "app.lock";
-    public static int ATTEMPTS = 1;
 
     public static void main(String[] args) {
         if (!acquireLock()) {
             System.err.println("Программа уже запущена! Выход...");
             return;
         }
+
+        //    ConfigWindow.showConfigWindow();
 //        while (ATTEMPTS <= 3) {
 //            ATTEMPTS++;
 //            {
 //                StartIsHere.start();
-//                sleep(1);
+//                sleep(10);
 //                EndIsNear.end();
 //            }
 //        }
-
-        EndIsNear.end();
+EndIsNear.end();
     }
 
     private static void sleep(long minutes) {
