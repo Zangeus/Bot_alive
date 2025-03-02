@@ -19,6 +19,7 @@ public class FindButtonAndPress {
     public static final Robot robot;
     private static final Random random = new Random();
     private static double MATCH_THRESHOLD = 0.8;
+    private static final Object searchLock = new Object();
 
     static {
         try {
@@ -30,27 +31,29 @@ public class FindButtonAndPress {
     }
 
     public static boolean findAndClick(String imagePath) {
-        final int maxAttempts = config.getAttemptsAmount();
-        final int delayMs = config.getSearchDelayMs();
+        synchronized (searchLock) {
+            final int maxAttempts = config.getAttemptsAmount();
+            final int delayMs = config.getSearchDelayMs();
 
-        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
-            System.out.printf("Attempt %d/%d for %s%n", attempt, maxAttempts, imagePath);
+            for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+                System.out.printf("Attempt %d/%d for %s%n", attempt, maxAttempts, imagePath);
 
-            try {
-                Point location = findButton(imagePath);
-                if (location != null) {
-                    performClick(location);
-                    return true;
+                try {
+                    Point location = findButton(imagePath);
+                    if (location != null) {
+                        performClick(location);
+                        return true;
+                    }
+                    sleepSafe(delayMs);
+                } catch (Exception e) {
+                    System.err.println("Search error: " + e.getMessage());
                 }
-                sleepSafe(delayMs);
-            } catch (Exception e) {
-                System.err.println("Search error: " + e.getMessage());
+
+
             }
-
-
+            handleFailure(maxAttempts, imagePath);
+            return false;
         }
-        handleFailure(maxAttempts, imagePath);
-        return false;
     }
 
     private static Point findButton(String buttonImagePath) {
@@ -117,7 +120,7 @@ public class FindButtonAndPress {
         robot.delay(50);
         robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
         robot.delay(100);
-        System.out.printf("Клик в [X: %d, Y: %d]%n", (int)location.x, (int)location.y);
+        System.out.printf("Клик в [X: %d, Y: %d]%n", (int) location.x, (int) location.y);
     }
 
     private static void sleepSafe(int delayMs) {

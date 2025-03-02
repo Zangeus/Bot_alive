@@ -21,11 +21,12 @@ public class EndIsNear {
     private static final String WINDOW_TITLE = "src";
     private static final int MAX_ATTEMPTS = 5;
     private static final int SCHEDULE_INTERVAL_MIN = 5;
+    private static volatile boolean isCheckInProgress = false;
 
     public static boolean end() {
         try {
             focusApplicationWindow();
-            scheduler = Executors.newScheduledThreadPool(2);
+            scheduler = Executors.newScheduledThreadPool(1);
 
             // Создаем главную задачу с таймаутом
             Future<Boolean> mainTask = scheduler.submit(() -> {
@@ -71,6 +72,9 @@ public class EndIsNear {
     private static Runnable createMonitoringTask() {
         AtomicInteger attempts = new AtomicInteger(0);
         return () -> {
+            if (isCheckInProgress) return; // Пропустить, если уже выполняется
+            isCheckInProgress = true;
+
             if (Thread.currentThread().isInterrupted()) return;
 
             try {
@@ -81,6 +85,7 @@ public class EndIsNear {
             } catch (Exception e) {
                 handleTaskError(e);
             }
+            isCheckInProgress = false;
         };
     }
 
@@ -96,10 +101,10 @@ public class EndIsNear {
         };
     }
 
+    // EndIsNear.java
     private static boolean performFullCheck() throws Exception {
         System.out.println("─── Основная проверка ───");
-        boolean checkResult = performCheck();
-        return checkResult && executePostCheckActions();
+        return performCheck() && executePostCheckActions();
     }
 
     private static boolean performCheck() throws Exception {
