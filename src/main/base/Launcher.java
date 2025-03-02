@@ -1,6 +1,7 @@
 import Config.ConfigManager;
 import Config.ConfigWindow;
 import Config.LauncherConfig;
+import Waiters.Main;
 
 import javax.swing.*;
 
@@ -13,12 +14,12 @@ public class Launcher {
             });
         } else {
             LauncherConfig config = ConfigManager.loadConfig();
-            startMainApplication(config);
+            startMainApplication(config, args);
         }
     }
 
-    private static void startMainApplication(LauncherConfig config) {
-        // Здесь инициализация основного приложения
+    private static void startMainApplication(LauncherConfig config, String[] args) {
+        Main.main(args);
         System.out.println("Запуск основного приложения...");
     }
 }
