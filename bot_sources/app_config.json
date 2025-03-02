@@ -8,12 +8,12 @@
   "reportMessages" : [ "Легендарный лог, сегодняшнего путешествия", "Если интересно... То это тебе", "Когда нибудь разраб сможет это пофиксить, главное верить", "Это тебе, не благодари" ],
   "botToken" : "7936533544:AAHJkRn8Dv_80IPkKWOlvNCrXfV6VNd0mnA",
   "chatId" : "1932711561",
-  "picsToStartPath" : "Q:\\bot_sources",
+  "picsToStartPath" : "Q:\\Z-folder\\Bot_time\\ExtraOnes\\bot_sources",
   "readmePath" : "README.md",
   "enableAutoRetry" : true,
   "searchDelayMs" : 1000,
   "debugMode" : false,
   "notificationsEnabled" : true,
   "reportWithScreenshot" : false,
-  "sleepDurationMinutes" : 12
+  "sleepDurationMinutes" : 1
 }

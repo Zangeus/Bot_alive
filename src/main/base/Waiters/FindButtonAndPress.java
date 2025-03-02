@@ -12,10 +12,12 @@ import java.awt.event.InputEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.util.List;
+import java.util.Random;
 
 public class FindButtonAndPress {
     private static final LauncherConfig config = ConfigManager.loadConfig();
     public static final Robot robot;
+    private static final Random random = new Random();
     private static double MATCH_THRESHOLD = 0.8;
 
     static {
@@ -44,8 +46,9 @@ public class FindButtonAndPress {
             } catch (Exception e) {
                 System.err.println("Search error: " + e.getMessage());
             }
-        }
 
+
+        }
         handleFailure(maxAttempts, imagePath);
         return false;
     }
@@ -132,12 +135,12 @@ public class FindButtonAndPress {
         if (config.isFailureNotification() && config.isNotificationsEnabled()) {
             try {
                 byte[] screenshot = Extractor.captureScreenshot();
-                String message = String.format(
-                        "Кнопка '%s' не найдена после %d попыток (порог: %.2f)",
-                        imagePath,
-                        maxAttempts,
-                        MATCH_THRESHOLD
-                );
+
+//                if (imagePath.contains("tasks_done.png")){
+//                    TelegramBotSender.sendPhoto(screenshot, getRandomMessage(get));
+//                }
+
+                String message = "";
                 TelegramBotSender.sendPhoto(screenshot, message);
             } catch (Exception e) {
                 System.err.println("Ошибка отправки скриншота: " + e.getMessage());
@@ -146,8 +149,12 @@ public class FindButtonAndPress {
         }
     }
 
-    public static void calibrateDetection(double newThreshold) {
-        MATCH_THRESHOLD = Math.min(Math.max(newThreshold, 0.5), 1.0);
-        System.out.println("Новый порог обнаружения: " + MATCH_THRESHOLD);
+    private static String getRandomMessage(List<String> messages) {
+        if (messages == null || messages.isEmpty()) {
+            return config.isDebugMode()
+                    ? "Нет доступных сообщений в конфигурации"
+                    : "";
+        }
+        return messages.get(random.nextInt(messages.size()));
     }
 }

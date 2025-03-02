@@ -21,23 +21,31 @@ public class EndIsNear {
     private static final String WINDOW_TITLE = "src";
     private static final int MAX_ATTEMPTS = 5;
     private static final int SCHEDULE_INTERVAL_MIN = 5;
-    private static volatile boolean globalSuccess = false;
 
     public static boolean end() {
         try {
             focusApplicationWindow();
-            LocalDateTime startTime = LocalDateTime.now();
-
             scheduler = Executors.newScheduledThreadPool(2);
-            scheduleTasks(startTime.getDayOfWeek());
 
-            if (!monitorScheduler()) {
+            // Создаем главную задачу с таймаутом
+            Future<Boolean> mainTask = scheduler.submit(() -> {
+                scheduleTasks(LocalDateTime.now().getDayOfWeek());
+                return executeFullWorkflow();
+            });
+
+            try {
+                // Ожидаем результат с таймаутом
+                return mainTask.get(10, TimeUnit.MINUTES);
+            } catch (TimeoutException e) {
+                System.err.println("Превышено время выполнения!");
+                mainTask.cancel(true);
                 return false;
             }
-            return globalSuccess;
         } catch (Exception e) {
             handleCriticalError(e);
             return false;
+        } finally {
+            shutdownScheduler();
         }
     }
 
@@ -49,30 +57,26 @@ public class EndIsNear {
                     SCHEDULE_INTERVAL_MIN,
                     TimeUnit.MINUTES
             );
-            System.out.println("Monday mode: Periodic checks enabled");
+            System.out.println("[Режим понедельника] Фоновые проверки активированы");
         } else {
             scheduler.schedule(
                     createSingleCheckTask(),
                     0,
                     TimeUnit.SECONDS
             );
-            System.out.println("Regular mode: Single check scheduled");
+            System.out.println("[Обычный режим] Стандартная проверка");
         }
     }
 
     private static Runnable createMonitoringTask() {
         AtomicInteger attempts = new AtomicInteger(0);
         return () -> {
+            if (Thread.currentThread().isInterrupted()) return;
+
             try {
-                System.out.println("Monitoring attempt #" + attempts.get());
-                boolean result = performFullCheck();
-                if (result || attempts.incrementAndGet() >= MAX_ATTEMPTS) {
-                    if (result) {
-                        globalSuccess = true;
-                        shutdownScheduler();
-                    } else {
-                        handleFailure("Max monitoring attempts reached");
-                    }
+                System.out.println("\nПроверка #" + attempts.incrementAndGet());
+                if (performFullCheck() || attempts.get() >= MAX_ATTEMPTS) {
+                    shutdownScheduler();
                 }
             } catch (Exception e) {
                 handleTaskError(e);
@@ -83,9 +87,8 @@ public class EndIsNear {
     private static Runnable createSingleCheckTask() {
         return () -> {
             try {
-                globalSuccess = performFullCheck();
-                if (!globalSuccess) {
-                    handleFailure("Initial check failed");
+                if (!performFullCheck()) {
+                    handleFailure("Основная проверка не пройдена");
                 }
             } catch (Exception e) {
                 handleTaskError(e);
@@ -94,100 +97,70 @@ public class EndIsNear {
     }
 
     private static boolean performFullCheck() throws Exception {
+        System.out.println("─── Основная проверка ───");
         boolean checkResult = performCheck();
-        if (checkResult) {
-            return executePostCheckActions();
-        }
-        return false;
+        return checkResult && executePostCheckActions();
     }
 
     private static boolean performCheck() throws Exception {
         String checkingPath = config.getPicsToStartPath() + "/checking.png";
-        System.out.println("Searching for: " + checkingPath);
+        System.out.println("Поиск элемента: " + checkingPath);
 
         boolean result = FindButtonAndPress.findAndClick(checkingPath);
         if (result) {
-            System.out.println("Check successful! Waiting for UI update...");
-            TimeUnit.SECONDS.sleep(2);
+            System.out.println("✓ Успешное обнаружение");
+            TimeUnit.SECONDS.sleep(5); // Увеличенная задержка
         }
         return result;
     }
 
-    private static boolean executePostCheckActions() {
-        System.out.println("Executing post-check actions...");
-        boolean stopFound = verifyComponent("stop.png");
-        boolean tasksDoneFound = verifyComponent("tasks_done.png");
-
-        if (!stopFound || !tasksDoneFound) {
-            System.err.println("Post-check verification failed");
-            return false;
-        }
-        return true;
+    private static boolean executePostCheckActions() throws Exception {
+        System.out.println("\n─── Дополнительные проверки ───");
+        return verifyComponent("stop.png") && verifyComponent("tasks_done.png");
     }
 
     private static boolean verifyComponent(String image) {
         String path = config.getPicsToStartPath() + "/" + image;
-        System.out.println("Verifying component: " + path);
-        return FindButtonAndPress.findAndClick(path);
-    }
-
-    private static void initiateShutdownSequence(boolean success) {
-        System.out.println("Initiating shutdown sequence...");
-        if (config.isReportNotification()) {
-            sendNotifications(success);
-        }
-        performSystemCleanup(success);
-        if (success) {
-            Main.requestForceShutdown();
-        }
-    }
-
-    private static boolean monitorScheduler() throws InterruptedException {
-        return scheduler.awaitTermination(1, TimeUnit.DAYS);
-    }
-
-    private static void shutdownScheduler() {
-        if (scheduler != null && !scheduler.isShutdown()) {
-            scheduler.shutdown();
-        }
+        System.out.println("Проверка: " + path);
+        boolean result = FindButtonAndPress.findAndClick(path);
+        System.out.println(result ? "✓ Обнаружено" : "✗ Не найдено");
+        return result;
     }
 
     private static void handleFailure(String message) {
-        System.err.println("Сбой: " + message);
-        sendNotifications(false);
-        shutdownScheduler(); // Только останавливаем планировщик
+        System.err.println("Ошибка: " + message);
     }
 
     private static void handleCriticalError(Exception e) {
         System.err.println("Критическая ошибка: " + e.getMessage());
-        sendNotifications(false);
-        performSystemCleanup(false);
+        performCleanup();
     }
 
     private static void handleTaskError(Exception e) {
-        System.err.println("Ошибка задачи: " + e.getMessage());
-        shutdownScheduler();
-        sendNotifications(false);
+        System.err.println("Ошибка выполнения: " + e.getMessage());
     }
 
-    private static void sendNotifications(boolean success) {
-        if ((success && config.isSuccessNotification()) || (!success && config.isFailureNotification())) {
-            TelegramBotSender.sendNotifications(success);
+    private static void performCleanup() {
+        try {
+            System.out.println("Завершение процессов...");
+            CloseProcess.terminate("MuMuPlayer.exe");
+            CloseProcess.terminate("src");
+        } catch (Exception e) {
+            System.err.println("Ошибка очистки: " + e.getMessage());
         }
     }
 
-    private static void performSystemCleanup(boolean success) {
-        try {
-            System.out.println("Выполнение очистки...");
-            CloseProcess.terminate("MuMuPlayer.exe");
-            CloseProcess.terminate("src");
-
-            if (success) {
-                System.out.println("Инициирование выключения системы...");
-                Runtime.getRuntime().exec("shutdown -s -f -t 100");
+    private static void shutdownScheduler() {
+        if (scheduler != null && !scheduler.isShutdown()) {
+            System.out.println("Остановка планировщика...");
+            scheduler.shutdownNow(); // Принудительный останов
+            try {
+                if (!scheduler.awaitTermination(1, TimeUnit.SECONDS)) {
+                    System.err.println("Не все задачи завершились корректно");
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
-        } catch (Exception e) {
-            System.err.println("Ошибка очистки: " + e.getMessage());
         }
     }
 
@@ -196,6 +169,16 @@ public class EndIsNear {
         if (hwnd != null) {
             User32.INSTANCE.ShowWindow(hwnd, WinUser.SW_RESTORE);
             User32.INSTANCE.SetForegroundWindow(hwnd);
+            System.out.println("Окно приложения активировано");
+        }
+    }
+
+    private static boolean executeFullWorkflow() {
+        try {
+            return performFullCheck();
+        } catch (Exception e) {
+            handleCriticalError(e);
+            return false;
         }
     }
 }

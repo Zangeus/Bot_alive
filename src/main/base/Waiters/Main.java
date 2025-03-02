@@ -13,7 +13,6 @@ import java.util.concurrent.TimeUnit;
 
 public class Main {
     private static final String LOCK_FILE = "app.lock";
-    private static int ATTEMPTS = 0;
     private static boolean success = false;
     private static final LauncherConfig config = ConfigManager.loadConfig();
     private static boolean forceShutdown = false;
@@ -28,11 +27,12 @@ public class Main {
 
         try {
             success = false;
-            while (ATTEMPTS < 3 && !success) {
-                System.out.println("\n=== Попытка #" + (ATTEMPTS + 1) + " ===");
+            final int maxAttempts = 3;
+            for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+                System.out.println("\n=== Попытка #" + attempt + " ===");
                 StartIsHere.start();
 
-                sleep(config.getSleepDurationMinutes() * 60);
+                sleep(0 * 60);
 
                 boolean attemptResult = false;
                 try {
@@ -41,15 +41,19 @@ public class Main {
                     System.err.println("Критическая ошибка в EndIsNear: " + e.getMessage());
                 }
 
-                ATTEMPTS++; // Увеличиваем счетчик ПОСЛЕ попытки
-
                 if (attemptResult) {
                     success = true;
                     System.out.println("УСПЕХ! Основной цикл завершен.");
+                    sendMessages(config.getSuccessMessages());
                     break;
-                } else if (ATTEMPTS < 3) {
-                    System.out.println("Повтор через 15 секунд...");
-                    sleep(15); // Пауза между попытками
+                } else {
+                    if (attempt < maxAttempts) {
+                        sendMessages(config.getReportMessages());
+                        System.out.println("Повтор через 15 секунд...");
+                        sleep(15);
+                    } else {
+                        sendMessages(config.getFailureMessages());
+                    }
                 }
             }
         } finally {
@@ -58,12 +62,20 @@ public class Main {
             performFinalCleanup();
 
             if (!success || forceShutdown) {
-                sendEmergencyMessage();
                 if (forceShutdown) {
                     performEmergencyShutdown();
                 }
             }
+
             System.exit(0);
+        }
+    }
+
+    private static void sendMessages(List<String> messages) {
+        if (messages != null && !messages.isEmpty()) {
+            TelegramBotSender.sendMessages(messages);
+        } else {
+            System.err.println("Список сообщений пуст, отправка отменена");
         }
     }
 
@@ -72,16 +84,6 @@ public class Main {
             TimeUnit.SECONDS.sleep(seconds);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-        }
-    }
-
-    public static void requestForceShutdown() {
-        forceShutdown = true;
-    }
-
-    private static void sendEmergencyMessage() {
-        if (config.isNotificationsEnabled()) {
-            TelegramBotSender.sendMessages(List.of("Самый ужасный заход эвер"));
         }
     }
 

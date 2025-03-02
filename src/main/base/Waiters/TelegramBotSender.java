@@ -46,30 +46,6 @@ public class TelegramBotSender {
         }
     }
 
-    public static void sendNotifications(boolean success) {
-        // Проверка общего флага уведомлений
-        if (!config.isNotificationsEnabled()) return;
-
-        // Проверка конкретных флагов типа уведомления
-        if (success && !config.isSuccessNotification()) return;
-        if (!success && !config.isFailureNotification()) return;
-
-        // Выбор сообщений
-        List<String> messages = success ?
-                config.getSuccessMessages() :
-                config.getFailureMessages();
-
-        // Проверка на пустые сообщения
-        if (messages == null || messages.isEmpty()) return;
-
-        // Выбор способа отправки
-        if (config.isReportWithScreenshot()) {
-            sendReportWithScreenshot(messages);
-        } else {
-            sendMessages(messages);
-        }
-    }
-
     private static boolean validateConfig() {
         if (config.getBotToken() == null || config.getBotToken().isEmpty()) {
             System.err.println("Токен бота не настроен!");
