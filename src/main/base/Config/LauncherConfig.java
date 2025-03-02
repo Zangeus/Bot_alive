@@ -35,6 +35,10 @@ public class LauncherConfig {
         return reportWithScreenshot;
     }
 
+    public boolean shouldSendFailureReport() {
+        return failureNotification && notificationsEnabled;
+    }
+
     // Сеттеры для новых полей (опционально)
     public void setNotificationsEnabled(boolean notificationsEnabled) {
         this.notificationsEnabled = notificationsEnabled;

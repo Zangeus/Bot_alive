@@ -10,6 +10,7 @@ import org.opencv.imgproc.Imgproc;
 import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.image.BufferedImage;
+import java.util.List;
 
 public class FindButtonAndPress {
     private static final LauncherConfig config = ConfigManager.loadConfig();
@@ -104,9 +105,18 @@ public class FindButtonAndPress {
 
     private static void handleFailure(int maxAttempts) {
         System.err.println("Кнопка не найдена после " + maxAttempts + " попыток");
-        if (config.isEnableAutoRetry()) {
-            System.out.println("Запуск процедуры повторного поиска...");
-            FindButtonAndPress.findAndClick(config.getPicsToStartPath() + "/retry.png");
+        // Отправляем уведомление со скриншотом
+        if (config.isFailureNotification() && config.isNotificationsEnabled()) {
+            try {
+                byte[] screenshot = Extractor.captureScreenshot();
+                TelegramBotSender.sendPhoto(
+                        screenshot,
+                        "Не удалось найти кнопку после " + maxAttempts + " попыток!"
+                );
+            } catch (Exception e) {
+                System.err.println("Ошибка отправки скриншота: " + e.getMessage());
+                TelegramBotSender.sendMessages(List.of("Ошибка! Не удалось сделать скриншот"));
+            }
         }
     }
 

@@ -26,14 +26,15 @@ public class Main {
         isRunning = true;
 
         try {
-            while (ATTEMPTS < 1 && !success) {
-                ATTEMPTS++;
+            while (ATTEMPTS < 3 && !success) {
                 StartIsHere.start();
                 sleep(0);
                 success = EndIsNear.end(); // Метод end() теперь возвращает boolean
+                ATTEMPTS++;
             }
         } finally {
             isRunning = false;
+            System.out.println("ЗАКРЫВАЕМСЯ...");
             performFinalCleanup();
 
             if (!success || forceShutdown) {

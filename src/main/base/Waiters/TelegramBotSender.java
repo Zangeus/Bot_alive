@@ -156,14 +156,18 @@ public class TelegramBotSender {
     }
 
     // Метод для прямой отправки фото (используется в Extractor)
-    static void sendPhoto(byte[] imageBytes, String caption) throws IOException {
-        if (!validateConfig()) return;
+    public static void sendPhoto(byte[] imageBytes, String caption) {
+        if (!config.shouldSendFailureReport()) return;
 
-        Extractor.sendPhotoWithCaption(
-                imageBytes,
-                caption,
-                config.getBotToken(),
-                config.getChatId()
-        );
+        try {
+            Extractor.sendPhotoWithCaption(
+                    imageBytes,
+                    caption,
+                    config.getBotToken(),
+                    config.getChatId()
+            );
+        } catch (Exception e) {
+            System.err.println("Ошибка отправки фото: " + e.getMessage());
+        }
     }
 }
