@@ -44,6 +44,7 @@ public class LauncherConfig {
         this.reportWithScreenshot = reportWithScreenshot;
     }
 
+
     public boolean isDebugMode() {
         return debugMode;
     }
@@ -103,22 +104,23 @@ public class LauncherConfig {
     }
 
     public List<String> getSuccessMessages() {
+        if (successMessages == null) successMessages = new ArrayList<>();
         return successMessages;
     }
-
     public void setSuccessMessages(List<String> successMessages) {
         this.successMessages = successMessages;
     }
 
     public List<String> getFailureMessages() {
+        if (failureMessages == null) failureMessages = new ArrayList<>();
         return failureMessages;
     }
-
     public void setFailureMessages(List<String> failureMessages) {
         this.failureMessages = failureMessages;
     }
 
     public List<String> getReportMessages() {
+        if (reportMessages == null) reportMessages = new ArrayList<>();
         return reportMessages;
     }
 

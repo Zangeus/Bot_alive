@@ -3,9 +3,13 @@ package Config;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Arrays;
+import Waiters.Main;
 
 public class ConfigWindow extends JFrame {
     private final LauncherConfig config;
@@ -18,6 +22,9 @@ public class ConfigWindow extends JFrame {
     private JTextField botTokenField;
     private JTextField chatIdField;
     private JTextField picsPathField;
+    private JTextArea successMessagesArea;
+    private JTextArea failureMessagesArea;
+    private JTextArea reportMessagesArea;
 
     public ConfigWindow() {
         config = ConfigManager.loadConfig();
@@ -28,14 +35,57 @@ public class ConfigWindow extends JFrame {
         setTitle("Настройки приложения");
         setSize(600, 400);
         setLayout(new BorderLayout());
-
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                if (!Main.isRunning()) {
+                    System.exit(0);
+                }
+            }
+        });
         JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.addTab("Основные", createGeneralPanel());
         tabbedPane.addTab("Telegram", createTelegramPanel());
         tabbedPane.addTab("Пути", createPathsPanel());
+        tabbedPane.addTab("Сообщения", createMessagesPanel()); // Новая вкладка
 
         add(tabbedPane, BorderLayout.CENTER);
         add(createButtonPanel(), BorderLayout.SOUTH);
+    }
+
+    private JPanel createMessagesPanel() {
+        JPanel panel = new JPanel(new BorderLayout(5, 5));
+
+        JTabbedPane messagesTabbedPane = new JTabbedPane();
+
+        // Success Messages
+        JPanel successPanel = new JPanel(new BorderLayout());
+        successMessagesArea = new JTextArea(10, 40);
+        successMessagesArea.setText(String.join("\n", config.getSuccessMessages()));
+        successPanel.add(new JLabel("Сообщения об успехе (каждое с новой строки):"), BorderLayout.NORTH);
+        successPanel.add(new JScrollPane(successMessagesArea), BorderLayout.CENTER);
+
+        // Failure Messages
+        JPanel failurePanel = new JPanel(new BorderLayout());
+        failureMessagesArea = new JTextArea(10, 40);
+        failureMessagesArea.setText(String.join("\n", config.getFailureMessages()));
+        failurePanel.add(new JLabel("Сообщения об ошибках (каждое с новой строки):"), BorderLayout.NORTH);
+        failurePanel.add(new JScrollPane(failureMessagesArea), BorderLayout.CENTER);
+
+        // Report Messages
+        JPanel reportPanel = new JPanel(new BorderLayout());
+        reportMessagesArea = new JTextArea(10, 40);
+        reportMessagesArea.setText(String.join("\n", config.getReportMessages()));
+        reportPanel.add(new JLabel("Сообщения для отчетов (каждое с новой строки):"), BorderLayout.NORTH);
+        reportPanel.add(new JScrollPane(reportMessagesArea), BorderLayout.CENTER);
+
+        messagesTabbedPane.addTab("Успех", successPanel);
+        messagesTabbedPane.addTab("Ошибки", failurePanel);
+        messagesTabbedPane.addTab("Отчеты", reportPanel);
+
+        panel.add(messagesTabbedPane, BorderLayout.CENTER);
+        return panel;
     }
 
     private JPanel createGeneralPanel() {
@@ -106,6 +156,9 @@ public class ConfigWindow extends JFrame {
         config.setBotToken(botTokenField.getText());
         config.setChatId(chatIdField.getText());
         config.setPicsToStartPath(picsPathField.getText());
+        config.setSuccessMessages(Arrays.asList(successMessagesArea.getText().split("\n")));
+        config.setFailureMessages(Arrays.asList(failureMessagesArea.getText().split("\n")));
+        config.setReportMessages(Arrays.asList(reportMessagesArea.getText().split("\n")));
 
         ConfigManager.saveConfig(config);
         JOptionPane.showMessageDialog(this, "Настройки сохранены!");

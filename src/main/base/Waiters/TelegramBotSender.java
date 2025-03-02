@@ -20,7 +20,7 @@ public class TelegramBotSender {
         if (!validateConfig()) return;
 
         String message = getRandomMessage(messages);
-        if (message == null || message.isEmpty()) {
+        if (isInvalidMessage(message)) {
             System.out.println("Пустое сообщение - отправка отменена");
             return;
         }
@@ -62,9 +62,15 @@ public class TelegramBotSender {
 
     private static String getRandomMessage(List<String> messages) {
         if (messages == null || messages.isEmpty()) {
-            return "Нет доступных сообщений";
+            return config.isDebugMode()
+                    ? "Нет доступных сообщений в конфигурации"
+                    : "";
         }
         return messages.get(random.nextInt(messages.size()));
+    }
+
+    private static boolean isInvalidMessage(String message) {
+        return message == null || message.isEmpty() || message.equals("Нет доступных сообщений");
     }
 
     private static void sendRequest(String method, String paramType, String content) {

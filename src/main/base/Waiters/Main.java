@@ -1,30 +1,78 @@
 package Waiters;
 
+import Config.ConfigManager;
+import Config.LauncherConfig;
 import End.EndIsNear;
+import Start.StartIsHere;
 
 import java.io.*;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.util.List;
 
 public class Main {
     private static final String LOCK_FILE = "app.lock";
+    private static int ATTEMPTS = 0;
+    private static boolean success = false;
+    private static final LauncherConfig config = ConfigManager.loadConfig();
+    private static boolean forceShutdown = false;
+    public static volatile boolean isRunning = true;
 
     public static void main(String[] args) {
         if (!acquireLock()) {
             System.err.println("Программа уже запущена! Выход...");
             return;
         }
+        isRunning = true;
 
-        //    ConfigWindow.showConfigWindow();
-//        while (ATTEMPTS <= 3) {
-//            ATTEMPTS++;
-//            {
-//                StartIsHere.start();
-//                sleep(10);
-//                EndIsNear.end();
-//            }
-//        }
-EndIsNear.end();
+        try {
+            while (ATTEMPTS < 1 && !success) {
+                ATTEMPTS++;
+                StartIsHere.start();
+                sleep(0);
+                success = EndIsNear.end(); // Метод end() теперь возвращает boolean
+            }
+        } finally {
+            isRunning = false;
+            performFinalCleanup();
+
+            if (!success || forceShutdown) {
+                sendEmergencyMessage();
+                if (forceShutdown) {
+                    performEmergencyShutdown();
+                }
+            }
+            System.exit(0); // Гарантированное завершение
+        }
+    }
+
+    public static void requestForceShutdown() {
+        forceShutdown = true;
+    }
+
+    private static void sendEmergencyMessage() {
+        if (config.isNotificationsEnabled()) {
+            TelegramBotSender.sendMessages(List.of("Самый ужасный заход эвер"));
+        }
+    }
+
+    private static void performEmergencyShutdown() {
+        try {
+            Runtime.getRuntime().exec("shutdown -s -f -t 100");
+        } catch (IOException e) {
+            System.err.println("Ошибка экстренного выключения: " + e.getMessage());
+        }
+    }
+
+    private static void performFinalCleanup() {
+        try {
+            File lockFile = new File(LOCK_FILE);
+            if (lockFile.exists()) {
+                lockFile.delete();
+            }
+        } catch (Exception e) {
+            System.err.println("Final cleanup error: " + e.getMessage());
+        }
     }
 
     private static void sleep(long minutes) {
@@ -60,5 +108,9 @@ EndIsNear.end();
         } catch (IOException e) {
             return false;
         }
+    }
+
+    public static boolean isRunning() {
+        return isRunning;
     }
 }

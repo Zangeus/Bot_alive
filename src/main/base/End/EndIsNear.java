@@ -3,6 +3,7 @@ package End;
 import Config.ConfigManager;
 import Config.LauncherConfig;
 import Waiters.FindButtonAndPress;
+import Waiters.Main;
 import Waiters.TelegramBotSender;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef;
@@ -22,7 +23,7 @@ public class EndIsNear {
     private static final int MAX_ATTEMPTS = 5;
     private static final int SCHEDULE_INTERVAL_MIN = 5;
 
-    public static void end() {
+    public static boolean end() {
         try {
             focusApplicationWindow();
             LocalDateTime startTime = LocalDateTime.now();
@@ -32,8 +33,10 @@ public class EndIsNear {
 
             monitorScheduler();
             executePostCheckActions();
+            return true;
         } catch (Exception e) {
             handleCriticalError(e);
+            return false; // Возвращаем false при ошибке
         }
     }
 
@@ -115,13 +118,6 @@ public class EndIsNear {
         return FindButtonAndPress.findAndClick(path);
     }
 
-    private static void initiateShutdownSequence(boolean success) {
-        System.out.println("Initiating shutdown sequence...");
-        sendNotifications(success);
-        performSystemCleanup();
-        System.exit(success ? 0 : 1);
-    }
-
     private static void sendNotifications(boolean success) {
         if (config.isNotificationsEnabled()) {
             List<String> messages = success ?
@@ -136,17 +132,26 @@ public class EndIsNear {
         }
     }
 
-    private static void performSystemCleanup() {
+    private static void performSystemCleanup(boolean success) {
         try {
             System.out.println("Closing processes...");
-            Runtime.getRuntime().exec("shutdown -s -f -t " + SHUTDOWN_DELAY_SEC);
+            if (success) {
+                Runtime.getRuntime().exec("shutdown -s -f -t " + SHUTDOWN_DELAY_SEC);
+            }
             CloseProcess.terminate("MuMuPlayer.exe");
-            //Добавить
-            //
-             //
-             //
+            CloseProcess.terminate("src");
+
         } catch (Exception e) {
             System.err.println("Cleanup error: " + e.getMessage());
+        }
+    }
+
+    private static void initiateShutdownSequence(boolean success) {
+        System.out.println("Initiating shutdown sequence...");
+        sendNotifications(success);
+        performSystemCleanup(success);
+        if (success) {
+            Main.requestForceShutdown();
         }
     }
 
@@ -172,14 +177,13 @@ public class EndIsNear {
     private static void handleCriticalError(Exception e) {
         System.err.println("Critical error: " + e.getMessage());
         sendNotifications(false);
-        performSystemCleanup();
-        System.exit(2);
+        performSystemCleanup(false);
     }
 
     private static void handleTaskError(Exception e) {
         System.err.println("Task error: " + e.getMessage());
         shutdownScheduler();
-        performSystemCleanup();
+        performSystemCleanup(false); // Передаем false
         System.exit(3);
     }
 
