@@ -3,6 +3,8 @@ package End;
 import java.io.IOException;
 
 public class CloseProcess {
+    private static final String[] processes = new String[]{"MuMuVMMHeadless.exe", "MuMuPlayer.exe", "src" };
+
     public static void terminate(String processName) {
         try {
             ProcessBuilder processBuilder = new ProcessBuilder("tasklist");
@@ -23,6 +25,12 @@ public class CloseProcess {
             scanner.close();
         } catch (IOException e) {
             System.out.println(e.getMessage());
+        }
+    }
+
+    public static void terminateProcesses() {
+        for (String processName : processes) {
+            terminate(processName);
         }
     }
 }

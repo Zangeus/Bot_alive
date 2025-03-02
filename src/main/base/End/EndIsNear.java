@@ -3,13 +3,10 @@ package End;
 import Config.ConfigManager;
 import Config.LauncherConfig;
 import Waiters.FindButtonAndPress;
-import Waiters.Main;
-import Waiters.TelegramBotSender;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.platform.win32.WinUser;
 
-import java.io.IOException;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.util.concurrent.*;
@@ -77,14 +74,14 @@ public class EndIsNear {
 
             if (Thread.currentThread().isInterrupted()) return;
 
-            try {
-                System.out.println("\nПроверка #" + attempts.incrementAndGet());
-                if (performFullCheck() || attempts.get() >= MAX_ATTEMPTS) {
-                    shutdownScheduler();
-                }
-            } catch (Exception e) {
-                handleTaskError(e);
-            }
+//            try {
+//                System.out.println("\nПроверка #" + attempts.incrementAndGet());
+//                if (performFullCheck() || attempts.get() >= MAX_ATTEMPTS) {
+//                    shutdownScheduler();
+//                }
+//            } catch (Exception e) {
+//                handleTaskError(e);
+//            }
             isCheckInProgress = false;
         };
     }
@@ -148,8 +145,7 @@ public class EndIsNear {
     private static void performCleanup() {
         try {
             System.out.println("Завершение процессов...");
-            CloseProcess.terminate("MuMuPlayer.exe");
-            CloseProcess.terminate("src");
+            CloseProcess.terminateProcesses();
         } catch (Exception e) {
             System.err.println("Ошибка очистки: " + e.getMessage());
         }

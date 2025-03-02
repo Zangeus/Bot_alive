@@ -2,6 +2,7 @@ package Waiters;
 
 import Config.ConfigManager;
 import Config.LauncherConfig;
+import End.CloseProcess;
 import End.EndIsNear;
 import Start.StartIsHere;
 
@@ -13,9 +14,7 @@ import java.util.concurrent.TimeUnit;
 
 public class Main {
     private static final String LOCK_FILE = "app.lock";
-    private static boolean success = false;
     private static final LauncherConfig config = ConfigManager.loadConfig();
-    private static boolean forceShutdown = false;
     public static volatile boolean isRunning = true;
 
     public static void main(String[] args) {
@@ -26,7 +25,6 @@ public class Main {
         isRunning = true;
 
         try {
-            success = false;
             final int maxAttempts = 3;
             for (int attempt = 1; attempt <= maxAttempts; attempt++) {
                 System.out.println("\n=== Попытка #" + attempt + " ===");
@@ -42,7 +40,6 @@ public class Main {
                 }
 
                 if (attemptResult) {
-                    success = true;
                     System.out.println("УСПЕХ! Основной цикл завершен.");
                     sendMessages(config.getSuccessMessages());
                     break;
@@ -60,12 +57,6 @@ public class Main {
             isRunning = false;
             System.out.println("\n=== ЗАВЕРШЕНИЕ РАБОТЫ ===");
             performFinalCleanup();
-
-            if (!success || forceShutdown) {
-                if (forceShutdown) {
-                    performEmergencyShutdown();
-                }
-            }
 
             System.exit(0);
         }
@@ -90,9 +81,9 @@ public class Main {
     private static void performEmergencyShutdown() {
         try {
             Runtime.getRuntime().exec("shutdown -s -f -t 100");
-            System.out.println("Shutdown command sent successfully");
+            System.out.println("Выключение было запущенно");
         } catch (IOException e) {
-            System.err.println("Failed to execute shutdown command: " + e.getMessage());
+            System.err.println("Выключение было прервано: " + e.getMessage());
         }
     }
 
@@ -102,8 +93,11 @@ public class Main {
             if (lockFile.exists()) {
                 lockFile.delete();
             }
+
+            CloseProcess.terminateProcesses();
+            performEmergencyShutdown();
         } catch (Exception e) {
-            System.err.println("Final cleanup error: " + e.getMessage());
+            System.err.println("Ошибка при последней зачистке: " + e.getMessage());
         }
     }
 

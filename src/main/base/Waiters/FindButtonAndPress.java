@@ -51,7 +51,7 @@ public class FindButtonAndPress {
 
 
             }
-            handleFailure(maxAttempts, imagePath);
+            handleFailure(maxAttempts);
             return false;
         }
     }
@@ -132,32 +132,19 @@ public class FindButtonAndPress {
         }
     }
 
-    private static void handleFailure(int maxAttempts, String imagePath) {
+    private static void handleFailure(int maxAttempts) {
         System.err.println("Кнопка не найдена после " + maxAttempts + " попыток");
 
         if (config.isFailureNotification() && config.isNotificationsEnabled()) {
             try {
                 byte[] screenshot = Extractor.captureScreenshot();
-
-//                if (imagePath.contains("tasks_done.png")){
-//                    TelegramBotSender.sendPhoto(screenshot, getRandomMessage(get));
-//                }
-
                 String message = "";
+
                 TelegramBotSender.sendPhoto(screenshot, message);
             } catch (Exception e) {
                 System.err.println("Ошибка отправки скриншота: " + e.getMessage());
                 TelegramBotSender.sendMessages(List.of("Ошибка! Не удалось сделать скриншот"));
             }
         }
-    }
-
-    private static String getRandomMessage(List<String> messages) {
-        if (messages == null || messages.isEmpty()) {
-            return config.isDebugMode()
-                    ? "Нет доступных сообщений в конфигурации"
-                    : "";
-        }
-        return messages.get(random.nextInt(messages.size()));
     }
 }
