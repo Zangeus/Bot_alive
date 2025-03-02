@@ -10,6 +10,7 @@ import org.opencv.imgproc.Imgproc;
 import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
 import java.util.List;
 
 public class FindButtonAndPress {
@@ -27,22 +28,25 @@ public class FindButtonAndPress {
     }
 
     public static boolean findAndClick(String imagePath) {
-        int attempts = 0;
         final int maxAttempts = config.getAttemptsAmount();
         final int delayMs = config.getSearchDelayMs();
 
-        while (attempts < maxAttempts) {
-            Point buttonLocation = findButton(imagePath);
-            if (buttonLocation != null) {
-                performClick(buttonLocation);
-                return true;
-            }
+        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+            System.out.printf("Attempt %d/%d for %s%n", attempt, maxAttempts, imagePath);
 
-            sleepSafe(delayMs);
-            attempts++;
+            try {
+                Point location = findButton(imagePath);
+                if (location != null) {
+                    performClick(location);
+                    return true;
+                }
+                sleepSafe(delayMs);
+            } catch (Exception e) {
+                System.err.println("Search error: " + e.getMessage());
+            }
         }
 
-        handleFailure(maxAttempts);
+        handleFailure(maxAttempts, imagePath);
         return false;
     }
 
@@ -59,11 +63,16 @@ public class FindButtonAndPress {
             Imgproc.matchTemplate(screen, buttonImage, result, Imgproc.TM_CCOEFF_NORMED);
 
             Core.MinMaxLocResult mmr = Core.minMaxLoc(result);
-            return mmr.maxVal > MATCH_THRESHOLD ? new Point(mmr.maxLoc.x, mmr.maxLoc.y) : null;
+            if (mmr.maxVal > MATCH_THRESHOLD) {
+                // Корректируем координаты на центр кнопки
+                int x = (int) (mmr.maxLoc.x + buttonImage.cols() / 2.0);
+                int y = (int) (mmr.maxLoc.y + buttonImage.rows() / 2.0);
+                return new Point(x, y);
+            }
         } catch (Exception e) {
             System.err.println("Ошибка поиска: " + e.getMessage());
-            return null;
         }
+        return null;
     }
 
     private static Mat captureScreen() {
@@ -73,25 +82,39 @@ public class FindButtonAndPress {
     }
 
     private static Mat convertToMat(BufferedImage image) {
-        Mat mat = new Mat(image.getHeight(), image.getWidth(), CvType.CV_8UC3);
-        for (int y = 0; y < image.getHeight(); y++) {
-            for (int x = 0; x < image.getWidth(); x++) {
-                int pixel = image.getRGB(x, y);
-                mat.put(y, x, new byte[] {
-                        (byte) ((pixel) & 0xFF),   // Blue
-                        (byte) ((pixel >> 8) & 0xFF),  // Green
-                        (byte) ((pixel >> 16) & 0xFF)  // Red
-                });
-            }
+        // Конвертируем в правильный формат если нужно
+        if (image.getType() != BufferedImage.TYPE_3BYTE_BGR) {
+            BufferedImage converted = new BufferedImage(
+                    image.getWidth(),
+                    image.getHeight(),
+                    BufferedImage.TYPE_3BYTE_BGR
+            );
+            converted.getGraphics().drawImage(image, 0, 0, null);
+            image = converted;
         }
+
+        // Получаем данные изображения
+        byte[] pixels = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
+
+        // Создаем Mat и заполняем данными
+        Mat mat = new Mat(
+                image.getHeight(),
+                image.getWidth(),
+                CvType.CV_8UC3
+        );
+        mat.put(0, 0, pixels); // Возвращаем Mat, а не результат put()
+
         return mat;
     }
 
     private static void performClick(Point location) {
         robot.mouseMove((int) location.x, (int) location.y);
+        robot.delay(50);
         robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+        robot.delay(50);
         robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
-        System.out.println("Успешный клик в координатах: " + location);
+        robot.delay(100);
+        System.out.printf("Клик в [X: %d, Y: %d]%n", (int)location.x, (int)location.y);
     }
 
     private static void sleepSafe(int delayMs) {
@@ -103,16 +126,19 @@ public class FindButtonAndPress {
         }
     }
 
-    private static void handleFailure(int maxAttempts) {
+    private static void handleFailure(int maxAttempts, String imagePath) {
         System.err.println("Кнопка не найдена после " + maxAttempts + " попыток");
-        // Отправляем уведомление со скриншотом
+
         if (config.isFailureNotification() && config.isNotificationsEnabled()) {
             try {
                 byte[] screenshot = Extractor.captureScreenshot();
-                TelegramBotSender.sendPhoto(
-                        screenshot,
-                        "Не удалось найти кнопку после " + maxAttempts + " попыток!"
+                String message = String.format(
+                        "Кнопка '%s' не найдена после %d попыток (порог: %.2f)",
+                        imagePath,
+                        maxAttempts,
+                        MATCH_THRESHOLD
                 );
+                TelegramBotSender.sendPhoto(screenshot, message);
             } catch (Exception e) {
                 System.err.println("Ошибка отправки скриншота: " + e.getMessage());
                 TelegramBotSender.sendMessages(List.of("Ошибка! Не удалось сделать скриншот"));
@@ -121,7 +147,7 @@ public class FindButtonAndPress {
     }
 
     public static void calibrateDetection(double newThreshold) {
-        System.out.println("Калибровка порога обнаружения: " + newThreshold);
         MATCH_THRESHOLD = Math.min(Math.max(newThreshold, 0.5), 1.0);
+        System.out.println("Новый порог обнаружения: " + MATCH_THRESHOLD);
     }
 }

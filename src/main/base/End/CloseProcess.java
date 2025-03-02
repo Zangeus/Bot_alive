@@ -3,7 +3,7 @@ package End;
 import java.io.IOException;
 
 public class CloseProcess {
-    public static boolean terminate(String processName) {
+    public static void terminate(String processName) {
         try {
             ProcessBuilder processBuilder = new ProcessBuilder("tasklist");
             Process process = processBuilder.start();
@@ -17,13 +17,12 @@ public class CloseProcess {
 
                     new ProcessBuilder("taskkill", "/PID", pid, "/F").start();
                     System.out.println("Процесс " + processName + " с PID " + pid + " завершен.");
-                    return true;
+                    return;
                 }
             }
             scanner.close();
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
-        return false;
     }
 }

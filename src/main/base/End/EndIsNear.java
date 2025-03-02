@@ -12,19 +12,16 @@ import com.sun.jna.platform.win32.WinUser;
 import java.io.IOException;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static Waiters.TelegramBotSender.sendNotifications;
 
 public class EndIsNear {
     private static final LauncherConfig config = ConfigManager.loadConfig();
     private static ScheduledExecutorService scheduler;
     private static final String WINDOW_TITLE = "src";
-    private static final int SHUTDOWN_DELAY_SEC = 100;
     private static final int MAX_ATTEMPTS = 5;
     private static final int SCHEDULE_INTERVAL_MIN = 5;
+    private static volatile boolean globalSuccess = false;
 
     public static boolean end() {
         try {
@@ -34,12 +31,13 @@ public class EndIsNear {
             scheduler = Executors.newScheduledThreadPool(2);
             scheduleTasks(startTime.getDayOfWeek());
 
-            monitorScheduler();
-            executePostCheckActions();
-            return true;
+            if (!monitorScheduler()) {
+                return false;
+            }
+            return globalSuccess;
         } catch (Exception e) {
             handleCriticalError(e);
-            return false; // Возвращаем false при ошибке
+            return false;
         }
     }
 
@@ -67,9 +65,12 @@ public class EndIsNear {
         return () -> {
             try {
                 System.out.println("Monitoring attempt #" + attempts.get());
-                if (performCheck() || attempts.incrementAndGet() >= MAX_ATTEMPTS) {
-                    shutdownScheduler();
-                    if (attempts.get() >= MAX_ATTEMPTS) {
+                boolean result = performFullCheck();
+                if (result || attempts.incrementAndGet() >= MAX_ATTEMPTS) {
+                    if (result) {
+                        globalSuccess = true;
+                        shutdownScheduler();
+                    } else {
                         handleFailure("Max monitoring attempts reached");
                     }
                 }
@@ -82,7 +83,8 @@ public class EndIsNear {
     private static Runnable createSingleCheckTask() {
         return () -> {
             try {
-                if (!performCheck()) {
+                globalSuccess = performFullCheck();
+                if (!globalSuccess) {
                     handleFailure("Initial check failed");
                 }
             } catch (Exception e) {
@@ -91,28 +93,36 @@ public class EndIsNear {
         };
     }
 
+    private static boolean performFullCheck() throws Exception {
+        boolean checkResult = performCheck();
+        if (checkResult) {
+            return executePostCheckActions();
+        }
+        return false;
+    }
+
     private static boolean performCheck() throws Exception {
         String checkingPath = config.getPicsToStartPath() + "/checking.png";
         System.out.println("Searching for: " + checkingPath);
 
         boolean result = FindButtonAndPress.findAndClick(checkingPath);
         if (result) {
-            System.out.println("Check successful! Proceeding to next step...");
-            TimeUnit.SECONDS.sleep(2); // Wait for UI update
-            executePostCheckActions();
+            System.out.println("Check successful! Waiting for UI update...");
+            TimeUnit.SECONDS.sleep(2);
         }
         return result;
     }
 
-    private static void executePostCheckActions() {
+    private static boolean executePostCheckActions() {
         System.out.println("Executing post-check actions...");
         boolean stopFound = verifyComponent("stop.png");
         boolean tasksDoneFound = verifyComponent("tasks_done.png");
 
         if (!stopFound || !tasksDoneFound) {
-            handleFailure("Post-check verification failed");
+            System.err.println("Post-check verification failed");
+            return false;
         }
-        initiateShutdownSequence(tasksDoneFound);
+        return true;
     }
 
     private static boolean verifyComponent(String image) {
@@ -121,71 +131,64 @@ public class EndIsNear {
         return FindButtonAndPress.findAndClick(path);
     }
 
-    private static void performSystemCleanup(boolean success) {
-        try {
-            System.out.println("Starting system cleanup...");
-
-            System.out.println("Terminating MuMuPlayer...");
-            boolean mumuClosed = CloseProcess.terminate("MuMuPlayer.exe");
-            CloseProcess.terminate("src");
-            System.out.println("MuMuPlayer terminated: " + mumuClosed);
-
-            if (success) {
-                System.out.println("Initiating system shutdown...");
-                try {
-                    Runtime.getRuntime().exec("shutdown -s -f -t 100");
-                    System.out.println("Shutdown command executed");
-                } catch (IOException e) {
-                    System.err.println("Standard shutdown failed: " + e.getMessage());
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("Cleanup error: " + e.getMessage());
-        } finally {
-            System.exit(0);
-        }
-    }
-
-
     private static void initiateShutdownSequence(boolean success) {
         System.out.println("Initiating shutdown sequence...");
-        sendNotifications(success);
+        if (config.isReportNotification()) {
+            sendNotifications(success);
+        }
         performSystemCleanup(success);
         if (success) {
             Main.requestForceShutdown();
         }
     }
 
-    private static void monitorScheduler() throws InterruptedException {
-        if (!scheduler.awaitTermination(1, TimeUnit.DAYS)) {
-            System.err.println("Scheduler timeout! Forcing shutdown.");
-            scheduler.shutdownNow();
-        }
+    private static boolean monitorScheduler() throws InterruptedException {
+        return scheduler.awaitTermination(1, TimeUnit.DAYS);
     }
 
     private static void shutdownScheduler() {
         if (scheduler != null && !scheduler.isShutdown()) {
-            System.out.println("Shutting down scheduler...");
             scheduler.shutdown();
         }
     }
 
     private static void handleFailure(String message) {
-        System.err.println("Failure: " + message);
-        initiateShutdownSequence(false);
+        System.err.println("Сбой: " + message);
+        sendNotifications(false);
+        shutdownScheduler(); // Только останавливаем планировщик
     }
 
     private static void handleCriticalError(Exception e) {
-        System.err.println("Critical error: " + e.getMessage());
+        System.err.println("Критическая ошибка: " + e.getMessage());
         sendNotifications(false);
         performSystemCleanup(false);
     }
 
     private static void handleTaskError(Exception e) {
-        System.err.println("Task error: " + e.getMessage());
+        System.err.println("Ошибка задачи: " + e.getMessage());
         shutdownScheduler();
-        performSystemCleanup(false); // Передаем false
-        System.exit(3);
+        sendNotifications(false);
+    }
+
+    private static void sendNotifications(boolean success) {
+        if ((success && config.isSuccessNotification()) || (!success && config.isFailureNotification())) {
+            TelegramBotSender.sendNotifications(success);
+        }
+    }
+
+    private static void performSystemCleanup(boolean success) {
+        try {
+            System.out.println("Выполнение очистки...");
+            CloseProcess.terminate("MuMuPlayer.exe");
+            CloseProcess.terminate("src");
+
+            if (success) {
+                System.out.println("Инициирование выключения системы...");
+                Runtime.getRuntime().exec("shutdown -s -f -t 100");
+            }
+        } catch (Exception e) {
+            System.err.println("Ошибка очистки: " + e.getMessage());
+        }
     }
 
     private static void focusApplicationWindow() {
@@ -193,9 +196,6 @@ public class EndIsNear {
         if (hwnd != null) {
             User32.INSTANCE.ShowWindow(hwnd, WinUser.SW_RESTORE);
             User32.INSTANCE.SetForegroundWindow(hwnd);
-            System.out.println("Application window focused");
-        } else {
-            System.out.println("Application window not found");
         }
     }
 }

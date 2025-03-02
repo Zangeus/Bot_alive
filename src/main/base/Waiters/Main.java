@@ -9,6 +9,7 @@ import java.io.*;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class Main {
     private static final String LOCK_FILE = "app.lock";
@@ -26,15 +27,32 @@ public class Main {
         isRunning = true;
 
         try {
+            success = false;
             while (ATTEMPTS < 3 && !success) {
+                System.out.println("\n=== Попытка #" + (ATTEMPTS + 1) + " ===");
                 StartIsHere.start();
-                sleep(0);
-                success = EndIsNear.end(); // Метод end() теперь возвращает boolean
-                ATTEMPTS++;
+
+                boolean attemptResult = false;
+                try {
+                    attemptResult = EndIsNear.end();
+                } catch (Exception e) {
+                    System.err.println("Критическая ошибка в EndIsNear: " + e.getMessage());
+                }
+
+                ATTEMPTS++; // Увеличиваем счетчик ПОСЛЕ попытки
+
+                if (attemptResult) {
+                    success = true;
+                    System.out.println("УСПЕХ! Основной цикл завершен.");
+                    break;
+                } else if (ATTEMPTS < 3) {
+                    System.out.println("Повтор через 15 секунд...");
+                    sleep(15); // Пауза между попытками
+                }
             }
         } finally {
             isRunning = false;
-            System.out.println("ЗАКРЫВАЕМСЯ...");
+            System.out.println("\n=== ЗАВЕРШЕНИЕ РАБОТЫ ===");
             performFinalCleanup();
 
             if (!success || forceShutdown) {
@@ -43,7 +61,15 @@ public class Main {
                     performEmergencyShutdown();
                 }
             }
-            System.exit(0); // Гарантированное завершение
+            System.exit(0);
+        }
+    }
+
+    private static void sleep(int seconds) {
+        try {
+            TimeUnit.SECONDS.sleep(seconds);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -74,14 +100,6 @@ public class Main {
             }
         } catch (Exception e) {
             System.err.println("Final cleanup error: " + e.getMessage());
-        }
-    }
-
-    private static void sleep(long minutes) {
-        try {
-            Thread.sleep(minutes * 60 * 1000);
-        } catch (InterruptedException e) {
-            System.out.println(e.getMessage());
         }
     }
 
