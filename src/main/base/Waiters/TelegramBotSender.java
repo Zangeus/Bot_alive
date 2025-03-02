@@ -28,24 +28,6 @@ public class TelegramBotSender {
         sendRequest("sendMessage", "text", message);
     }
 
-    public static void sendReportWithScreenshot(List<String> messages) {
-        if (!validateConfig()) return;
-
-        try {
-            byte[] screenshot = Extractor.captureScreenshot();
-            String caption = getRandomMessage(messages);
-            Extractor.sendPhotoWithCaption(
-                    screenshot,
-                    caption,
-                    config.getBotToken(),
-                    config.getChatId()
-            );
-        } catch (Exception e) {
-            System.err.println("Ошибка отправки отчета: " + e.getMessage());
-            sendMessages(messages);
-        }
-    }
-
     private static boolean validateConfig() {
         if (config.getBotToken() == null || config.getBotToken().isEmpty()) {
             System.err.println("Токен бота не настроен!");

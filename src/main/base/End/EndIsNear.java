@@ -69,7 +69,7 @@ public class EndIsNear {
     private static Runnable createMonitoringTask() {
         AtomicInteger attempts = new AtomicInteger(0);
         return () -> {
-            if (isCheckInProgress) return; // Пропустить, если уже выполняется
+            if (isCheckInProgress) return;
             isCheckInProgress = true;
 
             if (Thread.currentThread().isInterrupted()) return;
