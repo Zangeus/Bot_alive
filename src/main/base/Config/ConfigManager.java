@@ -1,6 +1,7 @@
 package Config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.File;
 import java.io.IOException;
 
@@ -12,15 +13,14 @@ public class ConfigManager {
         File configFile = new File(CONFIG_FILE);
         try {
             if (configFile.exists()) {
-                return mapper.readValue(configFile, LauncherConfig.class);
+                LauncherConfig loaded = mapper.readValue(configFile, LauncherConfig.class);
+                System.out.println("Loaded config: " + loaded);
+                return loaded;
             }
-            LauncherConfig newConfig = new LauncherConfig();
-            saveConfig(newConfig);
-            return newConfig;
         } catch (IOException e) {
             System.err.println("Ошибка загрузки конфига: " + e.getMessage());
-            return new LauncherConfig();
         }
+        return new LauncherConfig();
     }
 
     public static void saveConfig(LauncherConfig config) {
@@ -31,4 +31,6 @@ public class ConfigManager {
             System.err.println("Ошибка сохранения конфига: " + e.getMessage());
         }
     }
+
+
 }

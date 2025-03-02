@@ -153,9 +153,11 @@ public class ConfigWindow extends JFrame {
         config.setSuccessNotification(successCheck.isSelected());
         config.setFailureNotification(failureCheck.isSelected());
         config.setReportNotification(reportCheck.isSelected());
+
         config.setBotToken(botTokenField.getText());
         config.setChatId(chatIdField.getText());
         config.setPicsToStartPath(picsPathField.getText());
+
         config.setSuccessMessages(Arrays.asList(successMessagesArea.getText().split("\n")));
         config.setFailureMessages(Arrays.asList(failureMessagesArea.getText().split("\n")));
         config.setReportMessages(Arrays.asList(reportMessagesArea.getText().split("\n")));

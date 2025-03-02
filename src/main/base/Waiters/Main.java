@@ -59,8 +59,9 @@ public class Main {
     private static void performEmergencyShutdown() {
         try {
             Runtime.getRuntime().exec("shutdown -s -f -t 100");
+            System.out.println("Shutdown command sent successfully");
         } catch (IOException e) {
-            System.err.println("Ошибка экстренного выключения: " + e.getMessage());
+            System.err.println("Failed to execute shutdown command: " + e.getMessage());
         }
     }
 

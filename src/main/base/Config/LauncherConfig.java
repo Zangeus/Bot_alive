@@ -18,7 +18,7 @@ public class LauncherConfig {
     private String picsToStartPath = "";
     private String readmePath = "README.md";
 
-    private boolean enableAutoRetry = true;
+    private boolean enableAutoRetry = false;
     private int searchDelayMs = 1000;
     private boolean debugMode = false;
 
@@ -158,5 +158,14 @@ public class LauncherConfig {
 
     public void setReadmePath(String readmePath) {
         this.readmePath = readmePath;
+    }
+
+    @Override
+    public String toString() {
+        return "LauncherConfig{" +
+                "successNotification=" + successNotification +
+                ", failureNotification=" + failureNotification +
+                ", reportNotification=" + reportNotification +
+                "}";
     }
 }

@@ -9,11 +9,14 @@ import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.platform.win32.WinUser;
 
+import java.io.IOException;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static Waiters.TelegramBotSender.sendNotifications;
 
 public class EndIsNear {
     private static final LauncherConfig config = ConfigManager.loadConfig();
@@ -118,33 +121,31 @@ public class EndIsNear {
         return FindButtonAndPress.findAndClick(path);
     }
 
-    private static void sendNotifications(boolean success) {
-        if (config.isNotificationsEnabled()) {
-            List<String> messages = success ?
-                    config.getSuccessMessages() :
-                    config.getFailureMessages();
-
-            if (config.isReportWithScreenshot()) {
-                TelegramBotSender.sendReportWithScreenshot(messages);
-            } else {
-                TelegramBotSender.sendMessages(messages);
-            }
-        }
-    }
-
     private static void performSystemCleanup(boolean success) {
         try {
-            System.out.println("Closing processes...");
-            if (success) {
-                Runtime.getRuntime().exec("shutdown -s -f -t " + SHUTDOWN_DELAY_SEC);
-            }
-            CloseProcess.terminate("MuMuPlayer.exe");
-            CloseProcess.terminate("src");
+            System.out.println("Starting system cleanup...");
 
+            System.out.println("Terminating MuMuPlayer...");
+            boolean mumuClosed = CloseProcess.terminate("MuMuPlayer.exe");
+            CloseProcess.terminate("src");
+            System.out.println("MuMuPlayer terminated: " + mumuClosed);
+
+            if (success) {
+                System.out.println("Initiating system shutdown...");
+                try {
+                    Runtime.getRuntime().exec("shutdown -s -f -t 100");
+                    System.out.println("Shutdown command executed");
+                } catch (IOException e) {
+                    System.err.println("Standard shutdown failed: " + e.getMessage());
+                }
+            }
         } catch (Exception e) {
             System.err.println("Cleanup error: " + e.getMessage());
+        } finally {
+            System.exit(0);
         }
     }
+
 
     private static void initiateShutdownSequence(boolean success) {
         System.out.println("Initiating shutdown sequence...");
