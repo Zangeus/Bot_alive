@@ -9,6 +9,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Objects;
+
 import Waiters.Main;
 
 public class ConfigWindow extends JFrame {
@@ -34,10 +36,21 @@ public class ConfigWindow extends JFrame {
     }
 
     private void initUI() {
-        setTitle("Настройки приложения");
-        setSize(600, 400);
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception ignored) {}
+
+        setTitle("Настройки");
+        setSize(800, 600);
         setLayout(new BorderLayout());
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setLocationRelativeTo(null);
+
+        ImageIcon icon = new ImageIcon(Objects.requireNonNull(getClass().getResource("/icon.png")));
+        if (icon.getImage() != null) {
+            setIconImage(icon.getImage());
+        }
+
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosed(WindowEvent e) {
@@ -47,10 +60,11 @@ public class ConfigWindow extends JFrame {
             }
         });
         JTabbedPane tabbedPane = new JTabbedPane();
+        tabbedPane.setFont(new Font("Segoe UI", Font.PLAIN, 18));
         tabbedPane.addTab("Основные", createGeneralPanel());
         tabbedPane.addTab("Telegram", createTelegramPanel());
         tabbedPane.addTab("Пути", createPathsPanel());
-        tabbedPane.addTab("Сообщения", createMessagesPanel()); // Новая вкладка
+        tabbedPane.addTab("Сообщения", createMessagesPanel());
 
         add(tabbedPane, BorderLayout.CENTER);
         add(createButtonPanel(), BorderLayout.SOUTH);
