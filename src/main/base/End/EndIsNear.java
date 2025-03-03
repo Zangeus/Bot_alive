@@ -2,9 +2,14 @@ package End;
 
 import Config.ConfigManager;
 import Config.LauncherConfig;
+import Waiters.TelegramBotSender;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.platform.win32.WinUser;
+
+import java.time.DayOfWeek;
+import java.time.LocalDateTime;
+import java.util.concurrent.TimeUnit;
 
 import static Waiters.FindButtonAndPress.*;
 
@@ -18,7 +23,16 @@ public class EndIsNear {
 
             System.out.println("─── Starting main check ───");
 
-            if (!findAndClickWithOneMessageAndDelay("checking.png",
+            if (config.isMondayCheckEnabled() && LocalDateTime.now().getDayOfWeek() == DayOfWeek.MONDAY) {
+                for (int i = 0; i < 8; i++) {
+                    if (findAndClick("checking.png")) {
+                        break;
+                    } else sleep(3);
+                }
+                TelegramBotSender.sendNoteMessage("Очередной баг в виртуалке");
+                return false;
+            }
+            else if (!findAndClickWithOneMessageAndDelay("checking.png",
                     "Кнопка завершения работы бота не была найдена", 2000))
                 return false;
 
@@ -30,6 +44,14 @@ public class EndIsNear {
             System.err.println("Критическая ошибка: " + e.getMessage());
             CloseProcess.terminateProcesses();
             return false;
+        }
+    }
+
+    private static void sleep(int minutes) {
+        try {
+            TimeUnit.MINUTES.sleep(minutes);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 

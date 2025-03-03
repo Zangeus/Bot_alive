@@ -19,6 +19,7 @@ public class ConfigWindow extends JFrame {
     private JCheckBox successCheck;
     private JCheckBox failureCheck;
     private JCheckBox reportCheck;
+    private JCheckBox mondayCheck;
     private JTextField botTokenField;
     private JTextField chatIdField;
     private JTextField picsPathField;
@@ -90,8 +91,7 @@ public class ConfigWindow extends JFrame {
     }
 
     private JPanel createGeneralPanel() {
-        //JPanel panel = new JPanel(new GridLayout(4, 2, 5, 5));
-        JPanel panel = new JPanel(new GridLayout(5, 2, 5, 5));
+        JPanel panel = new JPanel(new GridLayout(6, 2, 5, 5));
 
         attemptsSpinner = new JSpinner(
                 new SpinnerNumberModel(config.getAttemptsAmount(), 1, 100, 1));
@@ -99,12 +99,11 @@ public class ConfigWindow extends JFrame {
         successCheck = new JCheckBox("Уведомлять об успехе", config.isSuccessNotification());
         failureCheck = new JCheckBox("Уведомлять о неудаче", config.isFailureNotification());
         reportCheck = new JCheckBox("Отправлять отчет", config.isReportNotification());
+        mondayCheck = new JCheckBox("Активировать проверки в понедельник", config.isMondayCheckEnabled());
 
         panel.add(new JLabel("Количество попыток:"));
         panel.add(attemptsSpinner);
-        panel.add(successCheck);
-        panel.add(failureCheck);
-        panel.add(reportCheck);
+
 
         sleepDurationSpinner = new JSpinner(
                 new SpinnerNumberModel(config.getSleepDurationMinutes(), 1, 1440, 1)
@@ -112,6 +111,13 @@ public class ConfigWindow extends JFrame {
 
         panel.add(new JLabel("Длительность сна (минут):"));
         panel.add(sleepDurationSpinner);
+
+        panel.add(new JLabel("Проверки в понедельник:"));
+        panel.add(mondayCheck);
+
+        panel.add(successCheck);
+        panel.add(failureCheck);
+        panel.add(reportCheck);
 
         return panel;
     }
@@ -162,6 +168,7 @@ public class ConfigWindow extends JFrame {
         config.setSuccessNotification(successCheck.isSelected());
         config.setFailureNotification(failureCheck.isSelected());
         config.setReportNotification(reportCheck.isSelected());
+        config.setMondayCheckEnabled(mondayCheck.isSelected());
 
         config.setBotToken(botTokenField.getText());
         config.setChatId(chatIdField.getText());

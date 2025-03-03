@@ -22,10 +22,18 @@ public class LauncherConfig {
     private int searchDelayMs = 1000;
     private boolean debugMode = false;
 
-    // Новые поля
     private boolean notificationsEnabled = true;
     private boolean reportWithScreenshot = false;
-    private int sleepDurationMinutes = 12; // Значение по умолчанию
+    private int sleepDurationMinutes = 12;
+    private boolean mondayCheckEnabled = true;
+
+    public boolean isMondayCheckEnabled() {
+        return mondayCheckEnabled;
+    }
+
+    public void setMondayCheckEnabled(boolean mondayCheckEnabled) {
+        this.mondayCheckEnabled = mondayCheckEnabled;
+    }
 
     public int getSleepDurationMinutes() {
         return sleepDurationMinutes;
@@ -36,7 +44,6 @@ public class LauncherConfig {
     }
 
 
-    // Геттеры для новых полей
     public boolean isNotificationsEnabled() {
         return notificationsEnabled;
     }
@@ -49,7 +56,6 @@ public class LauncherConfig {
         return failureNotification && notificationsEnabled;
     }
 
-    // Сеттеры для новых полей (опционально)
     public void setNotificationsEnabled(boolean notificationsEnabled) {
         this.notificationsEnabled = notificationsEnabled;
     }
@@ -67,7 +73,6 @@ public class LauncherConfig {
         this.debugMode = debugMode;
     }
 
-    // Геттеры и сеттеры
     public boolean isEnableAutoRetry() {
         return enableAutoRetry;
     }
@@ -84,7 +89,6 @@ public class LauncherConfig {
         this.searchDelayMs = searchDelayMs;
     }
 
-    // Геттеры и сеттеры
     public int getAttemptsAmount() {
         return attemptsAmount;
     }
@@ -181,6 +185,7 @@ public class LauncherConfig {
                 ", failureNotification=" + failureNotification +
                 ", reportNotification=" + reportNotification +
                 ", sleepDurationMinutes=" + sleepDurationMinutes +
+                ", mondayCheckEnabled=" + mondayCheckEnabled +
                 "}";
     }
 }

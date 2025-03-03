@@ -15,5 +15,6 @@
   "debugMode" : false,
   "notificationsEnabled" : true,
   "reportWithScreenshot" : false,
-  "sleepDurationMinutes" : 12
+  "sleepDurationMinutes" : 12,
+  "mondayCheckEnabled" : true
 }
