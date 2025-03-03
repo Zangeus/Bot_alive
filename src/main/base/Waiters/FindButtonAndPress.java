@@ -165,6 +165,26 @@ public class FindButtonAndPress {
         return result;
     }
 
+    public static boolean findAndClickForTasks(String image) {
+        boolean result = findAndClick(image);
+
+        if (!result)
+            if (config.isFailureNotification())
+                TelegramBotSender.sendMessages(config.getReportMessages());
+
+        return result;
+    }
+
+    public static boolean findAndClickWithOneMessage(String image, String message) {
+        boolean result = findAndClick(image);
+
+        if (!result)
+            if (config.isFailureNotification())
+                TelegramBotSender.sendNoteMessage(message);
+
+        return result;
+    }
+
     public static boolean findAndClickWithDelay(String image, int delayMs) {
         boolean result = findAndClick(image);
         if (result)
@@ -173,6 +193,21 @@ public class FindButtonAndPress {
             } catch (InterruptedException e) {
                 System.out.println(e.getMessage());
             }
+        return result;
+    }
+
+    public static boolean findAndClickWithOneMessageAndDelay(String image, String message, int delayMs) {
+        boolean result = findAndClick(image);
+
+        if (result)
+            try {
+                Thread.sleep(delayMs);
+            } catch (InterruptedException e) {
+                System.out.println(e.getMessage());
+            }
+        else if (config.isFailureNotification())
+            TelegramBotSender.sendNoteMessage(message);
+
         return result;
     }
 

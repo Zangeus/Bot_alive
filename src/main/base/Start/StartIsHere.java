@@ -17,11 +17,11 @@ public class StartIsHere {
     public static boolean start() throws InterruptedException {
         activateWindows();
 
-        if (!findAndClickWithMessageAndDelay("start.png"
+        if (!findAndClickWithOneMessageAndDelay("start.png"
                 , "Кнопка для старта не была найдена", 2000))
             return false;
 
-        return findAndClickWithMessage("start_button.png", "Не удалось найти кнопку запуска");
+        return findAndClickWithOneMessage("start_button.png", "Не удалось найти кнопку запуска");
     }
 
     private static void activateWindows() {

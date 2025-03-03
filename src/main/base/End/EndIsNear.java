@@ -18,14 +18,13 @@ public class EndIsNear {
 
             System.out.println("─── Starting main check ───");
 
-            if (!findAndClickWithMessageAndDelay("checking.png",
+            if (!findAndClickWithOneMessageAndDelay("checking.png",
                     "Кнопка завершения работы бота не была найдена", 2000))
                 return false;
 
-            return findAndClickWithMessage("stop.png",
+            return findAndClickWithOneMessage("stop.png",
                     "Кнопка остановки не была найдена") &&
-                    findAndClickWithMessage("tasks_done.png",
-                            "Задания не были выполнены");
+                    findAndClickForTasks("tasks_done.png");
 
         } catch (Exception e) {
             System.err.println("Критическая ошибка: " + e.getMessage());

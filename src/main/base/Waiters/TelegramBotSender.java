@@ -138,6 +138,12 @@ public class TelegramBotSender {
             System.out.println("Пустое сообщение - отправка отменена");
             return;
         }
-        sendRequest("sendMessage", "text", message + "\nСлед: " + extraMessage);
+        sendRequest("sendMessage", "text", message + "\nПримечание: " + extraMessage);
+    }
+
+    public static void sendNoteMessage(String extraMessage) {
+        if (!validateConfig()) return;
+
+        sendRequest("sendMessage", "text", "Примечание: " + extraMessage);
     }
 }
