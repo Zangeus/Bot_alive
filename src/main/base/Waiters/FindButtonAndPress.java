@@ -48,8 +48,6 @@ public class FindButtonAndPress {
                 } catch (Exception e) {
                     System.err.println("Search error: " + e.getMessage());
                 }
-
-
             }
             handleFailure(maxAttempts);
             return false;

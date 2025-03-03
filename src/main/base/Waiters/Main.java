@@ -28,7 +28,8 @@ public class Main {
             final int maxAttempts = 3;
             for (int attempt = 1; attempt <= maxAttempts; attempt++) {
                 System.out.println("\n=== Попытка #" + attempt + " ===");
-                StartIsHere.start();
+
+                if (!StartIsHere.start()) continue;
 
                 sleep(0 * 60);
 

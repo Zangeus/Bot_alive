@@ -2,6 +2,7 @@ package Waiters;
 
 import Config.ConfigManager;
 import Config.LauncherConfig;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -127,5 +128,16 @@ public class TelegramBotSender {
         } catch (Exception e) {
             System.err.println("Ошибка отправки фото: " + e.getMessage());
         }
+    }
+
+    public static void sendExtraMessage(List<String> messages, String extraMessage) {
+        if (!validateConfig()) return;
+
+        String message = getRandomMessage(messages);
+        if (isInvalidMessage(message)) {
+            System.out.println("Пустое сообщение - отправка отменена");
+            return;
+        }
+        sendRequest("sendMessage", "text", message + "\nПримечание: " + extraMessage);
     }
 }

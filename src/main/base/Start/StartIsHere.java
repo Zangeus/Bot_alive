@@ -12,7 +12,7 @@ import static java.lang.Thread.sleep;
 public class StartIsHere {
     private static final LauncherConfig config = ConfigManager.loadConfig();
 
-    public static void start() {
+    public static boolean start() {
         try {
             Robot robot = new Robot();
             activateWindows(robot);
@@ -20,6 +20,7 @@ public class StartIsHere {
             String startImagePath = config.getPicsToStartPath() + "/start.png";
             if (!FindButtonAndPress.findAndClick(startImagePath)) {
                 handleFailure("Не удалось найти стартовую кнопку");
+                return false;
             }
 
             sleep(2000); // Ожидание анимации
@@ -27,11 +28,12 @@ public class StartIsHere {
             String startButtonPath = config.getPicsToStartPath() + "/start_button.png";
             if (!FindButtonAndPress.findAndClick(startButtonPath)) {
                 handleFailure("Не удалось найти кнопку запуска");
+                return false;
             }
-
         } catch (Exception e) {
             handleError(e);
         }
+        return true;
     }
 
     private static void activateWindows(Robot robot) {
@@ -48,16 +50,14 @@ public class StartIsHere {
     private static void handleFailure(String message) {
         System.err.println(message);
         if (config.isFailureNotification()) {
-            TelegramBotSender.sendMessages(config.getFailureMessages());
+            TelegramBotSender.sendExtraMessage(config.getReportMessages(), message);
         }
-        System.exit(1);
     }
 
     private static void handleError(Exception e) {
         System.err.println("Критическая ошибка запуска: " + e.getMessage());
         if (config.isFailureNotification()) {
-            TelegramBotSender.sendMessages(config.getFailureMessages());
+            TelegramBotSender.sendMessages(config.getReportMessages());
         }
-        System.exit(2);
     }
 }
