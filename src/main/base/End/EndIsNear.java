@@ -26,7 +26,9 @@ public class EndIsNear {
             if (config.isMondayCheckEnabled() && LocalDateTime.now().getDayOfWeek() == DayOfWeek.MONDAY) {
                 for (int i = 0; i < 8; i++) {
                     if (findAndClick("checking.png")) {
-                        break;
+                        return findAndClickWithOneMessage("stop.png",
+                                "Кнопка остановки не была найдена") &&
+                                findAndClickForTasks("tasks_done.png");
                     } else sleep(3);
                 }
                 TelegramBotSender.sendNoteMessage("Очередной баг в виртуалке");
