@@ -19,7 +19,7 @@ public class EndIsNear {
             System.out.println("─── Starting main check ───");
 
             if (!findAndClickWithMessageAndDelay("checking.png",
-                    "Кнопка завершения бота не была найдена", 2000))
+                    "Кнопка завершения работы бота не была найдена", 2000))
                 return false;
 
             return findAndClickWithMessage("stop.png",

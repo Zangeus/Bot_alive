@@ -33,20 +33,12 @@ public class Main {
 
                 sleep(0 * 60);
 
-                boolean attemptResult = false;
-                try {
-                    attemptResult = EndIsNear.end();
-                } catch (Exception e) {
-                    System.err.println("Критическая ошибка в EndIsNear: " + e.getMessage());
-                }
-
-                if (attemptResult) {
+                if (EndIsNear.end()) {
                     System.out.println("УСПЕХ! Основной цикл завершен.");
                     sendMessages(config.getSuccessMessages());
                     break;
                 } else {
                     if (attempt < maxAttempts) {
-                        sendMessages(config.getReportMessages());
                         System.out.println("Повтор через 15 секунд...");
                         sleep(15);
                     } else {
