@@ -54,6 +54,8 @@ public class Main {
                     }
                 }
             }
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         } finally {
             isRunning = false;
             System.out.println("\n=== ЗАВЕРШЕНИЕ РАБОТЫ ===");

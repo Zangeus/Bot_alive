@@ -30,7 +30,7 @@ public class FindButtonAndPress {
         }
     }
 
-    public static boolean findAndClick(String imagePath) {
+    public static boolean findAndClickFull(String imagePath) {
         synchronized (searchLock) {
             final int maxAttempts = config.getAttemptsAmount();
             final int delayMs = config.getSearchDelayMs();
@@ -145,4 +145,51 @@ public class FindButtonAndPress {
             }
         }
     }
+
+    public static boolean findAndClick(String image) {
+        String path = config.getPicsToStartPath() + "/" + image;
+        System.out.println("Проверка: " + path);
+
+        boolean result = findAndClickFull(path);
+        System.out.println(result ? "✓ Обнаружено" : "✗ Не найдено");
+        return result;
+    }
+
+    public static boolean findAndClickWithMessage(String image, String message) {
+        boolean result = findAndClick(image);
+
+        if (!result)
+            if (config.isFailureNotification())
+                TelegramBotSender.sendExtraMessage(config.getReportMessages(), message);
+
+        return result;
+    }
+
+    public static boolean findAndClickWithDelay(String image, int delayMs) {
+        boolean result = findAndClick(image);
+        if (result)
+            try {
+                Thread.sleep(delayMs);
+            } catch (InterruptedException e) {
+                System.out.println(e.getMessage());
+            }
+        return result;
+    }
+
+    public static boolean findAndClickWithMessageAndDelay(String image, String message, int delayMs) {
+        boolean result = findAndClick(image);
+
+        if (result)
+            try {
+                Thread.sleep(delayMs);
+            } catch (InterruptedException e) {
+                System.out.println(e.getMessage());
+            }
+        else if (config.isFailureNotification())
+            TelegramBotSender.sendExtraMessage(config.getReportMessages(), message);
+
+        return result;
+    }
+
+
 }
