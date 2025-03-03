@@ -27,11 +27,12 @@ public class Main {
         try {
             final int maxAttempts = 3;
             for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+                CloseProcess.terminateProcesses();
                 System.out.println("\n=== Попытка #" + attempt + " ===");
 
                 if (!StartIsHere.start()) continue;
 
-                sleep(0 * 60);
+                sleep(config.getSleepDurationMinutes() * 60);
 
                 if (EndIsNear.end()) {
                     System.out.println("УСПЕХ! Основной цикл завершен.");
