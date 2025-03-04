@@ -1,10 +1,5 @@
 package Start;
 
-import Config.ConfigManager;
-import Config.LauncherConfig;
-import Waiters.FindButtonAndPress;
-import Waiters.TelegramBotSender;
-
 import java.awt.*;
 import java.awt.event.KeyEvent;
 
@@ -12,7 +7,6 @@ import static Waiters.FindButtonAndPress.*;
 import static java.lang.Thread.sleep;
 
 public class StartIsHere {
-    private static final LauncherConfig config = ConfigManager.loadConfig();
 
     public static boolean start() throws InterruptedException {
         activateWindows();
@@ -34,10 +28,5 @@ public class StartIsHere {
             Thread.currentThread().interrupt();
             System.err.println("Прервана активация меню Windows: " + e.getMessage());
         }
-    }
-
-    private static void handleFailure(String message) {
-        System.err.println(message);
-
     }
 }

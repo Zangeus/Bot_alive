@@ -22,9 +22,9 @@ public class ConfigWindow extends JFrame {
     private JTextField chatIdField;
     private JTextField picsPathField;
 
-    private JTextArea successMessagesArea;
-    private JTextArea failureMessagesArea;
-    private JTextArea reportMessagesArea;
+    private final JTextArea successMessagesArea;
+    private final JTextArea failureMessagesArea;
+    private final JTextArea reportMessagesArea;
     private JSpinner attemptsSpinner;
     private JCheckBox successCheck;
     private JCheckBox failureCheck;

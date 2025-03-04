@@ -10,31 +10,10 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 
 public class Extractor {
     private static final LauncherConfig config = ConfigManager.loadConfig();
 
-    public static String extractResource(String resourceName) {
-        try {
-            InputStream inputStream = Extractor.class.getResourceAsStream(
-                    config.getPicsToStartPath() + resourceName
-            );
-
-            if (inputStream == null) {
-                throw new IOException("Ресурс не найден: " + resourceName + "\nPath:" + config.getPicsToStartPath());
-            }
-
-            File tempFile = createTempFile(resourceName);
-            Files.copy(inputStream, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            return tempFile.getAbsolutePath();
-
-        } catch (Exception e) {
-            handleExtractionError(e, resourceName);
-            return null;
-        }
-    }
 
     public static byte[] captureScreenshot() throws AWTException, IOException {
         Robot robot = new Robot();
@@ -64,18 +43,6 @@ public class Extractor {
         }
 
         handleServerResponse(connection);
-    }
-
-    private static File createTempFile(String resourceName) throws IOException {
-        String prefix = resourceName.replaceAll("[^a-zA-Z0-9]", "_");
-        return File.createTempFile(prefix + "_", ".png");
-    }
-
-    private static void handleExtractionError(Exception e, String resourceName) {
-        System.err.println("Ошибка извлечения ресурса '" + resourceName + "': " + e.getMessage());
-        if (config.isDebugMode()) {
-            e.printStackTrace();
-        }
     }
 
     private static HttpURLConnection prepareConnection(String botToken, String boundary)
@@ -137,12 +104,6 @@ public class Extractor {
             }
         } catch (IOException e) {
             System.err.println("Ошибка чтения ответа: " + e.getMessage());
-        }
-    }
-
-    public static BufferedImage convertToBufferedImage(byte[] imageBytes) throws IOException {
-        try (ByteArrayInputStream bais = new ByteArrayInputStream(imageBytes)) {
-            return ImageIO.read(bais);
         }
     }
 }

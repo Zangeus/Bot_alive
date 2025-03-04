@@ -26,6 +26,24 @@ public class LauncherConfig {
     private boolean reportWithScreenshot = false;
     private int sleepDurationMinutes = 12;
     private boolean mondayCheckEnabled = true;
+    private boolean monitoringEnabled = true;
+    private boolean takeTheMailEnabled = true;
+
+    public boolean isTakeTheMailEnabled() {
+        return takeTheMailEnabled;
+    }
+
+    public void setTakeTheMailEnabled(boolean takeTheMailEnabled) {
+        this.takeTheMailEnabled = takeTheMailEnabled;
+    }
+
+    public boolean isMonitoringEnabled() {
+        return monitoringEnabled;
+    }
+
+    public void setMonitoringEnabled(boolean monitoringEnabled) {
+        this.monitoringEnabled = monitoringEnabled;
+    }
 
     public boolean isMondayCheckEnabled() {
         return mondayCheckEnabled;
@@ -186,6 +204,8 @@ public class LauncherConfig {
                 ", reportNotification=" + reportNotification +
                 ", sleepDurationMinutes=" + sleepDurationMinutes +
                 ", mondayCheckEnabled=" + mondayCheckEnabled +
+                ", monitoringEnabled=" + monitoringEnabled +
+                ", takeTheMailEnabled=" + takeTheMailEnabled +
                 "}";
     }
 }
