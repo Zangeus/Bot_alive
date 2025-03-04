@@ -1,6 +1,6 @@
 {
   "attemptsAmount" : 40,
-  "successNotification" : false,
+  "successNotification" : true,
   "failureNotification" : true,
   "reportNotification" : true,
   "successMessages" : [ "Отлично, задания выполнены! Ты настоящий профессионал, так держать!", "Молодец, все задачи закрыты. Ты справляешься лучше, чем я ожидала!", "Вот это я понимаю — эффективность! Ты сегодня на высоте.", "Задания выполнены? Браво! Ты заслуживаешь похвалы и, может быть, даже награды.", "Ты справился с заданиями? Я знала, что на тебя можно положиться!", "Идеально! Ты сегодня как настоящий герой — все задачи покорены.", "Задания выполнены? Ты просто мастер своего дела, продолжай в том же духе!", "Ты сегодня на высоте! Все задачи выполнены, и это заслуживает уважения." ],
@@ -16,5 +16,7 @@
   "notificationsEnabled" : true,
   "reportWithScreenshot" : false,
   "sleepDurationMinutes" : 12,
-  "mondayCheckEnabled" : true
+  "mondayCheckEnabled" : true,
+  "monitoringEnabled" : false,
+  "takeTheMailEnabled" : true
 }
