@@ -53,8 +53,8 @@ public class Main {
         } finally {
             isRunning = false;
             System.out.println("\n=== ЗАВЕРШЕНИЕ РАБОТЫ ===");
+            TakeTheMail.take();
             performFinalCleanup();
-
             System.exit(0);
         }
     }
