@@ -16,7 +16,6 @@ public class Monitoring {
     private static final int minutesBetweenIterations = 10;
     private static final int secondsAfterMessages = 5;
 
-
     public static void monitor() {
         do focusApplicationWindow();
         while (!handleCriticalSituation());
@@ -43,6 +42,8 @@ public class Monitoring {
     }
 
     private static void executeEmergencyProtocol() {
+        String imagePath = "bot_sources/SU.png";
+        TelegramBotSender.sendLocalPhoto(imagePath);
 
         TelegramBotSender.sendNoteMessage("Легендарный квест 1001-ночи был завершен");
         sleep(secondsAfterMessages);

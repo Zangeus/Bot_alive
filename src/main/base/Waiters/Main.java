@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class Main {
-    private static final String LOCK_FILE = "app.lock";
+    private static final String LOCK_FILE = "bot_sources/app.lock";
     private static final LauncherConfig config = ConfigManager.loadConfig();
     public static volatile boolean isRunning = true;
 

@@ -1,5 +1,5 @@
 {
-  "attemptsAmount" : 3,
+  "attemptsAmount" : 40,
   "successNotification" : true,
   "failureNotification" : true,
   "reportNotification" : true,
@@ -9,7 +9,7 @@
   "botToken" : "7936533544:AAHJkRn8Dv_80IPkKWOlvNCrXfV6VNd0mnA",
   "chatId" : "1932711561",
   "picsToStartPath" : "Q:\\Z-folder\\Bot_time\\ExtraOnes\\bot_sources",
-  "readmePath" : "README.md",
+  "readmePath" : "bot_sources/README.md",
   "enableAutoRetry" : true,
   "searchDelayMs" : 1000,
   "debugMode" : false,
@@ -17,6 +17,6 @@
   "reportWithScreenshot" : false,
   "sleepDurationMinutes" : 12,
   "mondayCheckEnabled" : true,
-  "monitoringEnabled" : true,
+  "monitoringEnabled" : false,
   "takeTheMailEnabled" : true
 }

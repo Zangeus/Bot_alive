@@ -16,7 +16,7 @@ public class LauncherConfig {
     private String botToken = "";
     private String chatId = "";
     private String picsToStartPath = "";
-    private String readmePath = "README.md";
+    private String readmePath = "bot_sources/README.md";
 
     private boolean enableAutoRetry = false;
     private int searchDelayMs = 1000;

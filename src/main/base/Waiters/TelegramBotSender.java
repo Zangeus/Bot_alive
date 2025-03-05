@@ -3,12 +3,11 @@ package Waiters;
 import Config.ConfigManager;
 import Config.LauncherConfig;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Random;
 
@@ -145,5 +144,55 @@ public class TelegramBotSender {
         if (!validateConfig()) return;
 
         sendRequest("sendMessage", "text", "Примечание: " + extraMessage);
+    }
+
+    public static void sendPhotoUrl(String imageUrl) {
+        if (!validateConfig()) return;
+        sendRequest("sendPhoto", "photo", imageUrl);
+    }
+
+    public static void sendLocalPhoto(String imagePath) {
+        if (!validateConfig()) return;
+
+        try {
+            File imageFile = new File(imagePath);
+
+            // Исправление: получаем Path из File
+            Path filePath = imageFile.toPath();
+            byte[] imageBytes = Files.readAllBytes(filePath);
+
+            String urlString = API_URL + config.getBotToken() + "/sendPhoto";
+            HttpURLConnection connection = (HttpURLConnection) new URL(urlString).openConnection();
+
+            // Формируем multipart-запрос
+            String boundary = "Boundary-" + System.currentTimeMillis();
+            connection.setRequestMethod("POST");
+            connection.setDoOutput(true);
+            connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
+
+            try (OutputStream os = connection.getOutputStream();
+                 PrintWriter writer = new PrintWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8))) {
+
+                // Параметр chat_id
+                writer.append("--").append(boundary).append("\r\n");
+                writer.append("Content-Disposition: form-data; name=\"chat_id\"\r\n\r\n");
+                writer.append(config.getChatId()).append("\r\n").flush();
+
+                // Файл с изображением
+                writer.append("--").append(boundary).append("\r\n");
+                writer.append("Content-Disposition: form-data; name=\"photo\"; filename=\"")
+                        .append(imageFile.getName()).append("\"\r\n");
+                writer.append("Content-Type: image/png\r\n\r\n").flush();
+                os.write(imageBytes);
+                os.flush();
+
+                // Завершаем boundary
+                writer.append("\r\n--").append(boundary).append("--\r\n").flush();
+            }
+
+            handleResponse(connection);
+        } catch (IOException e) {
+            System.err.println("Ошибка отправки локального фото: " + e.getMessage());
+        }
     }
 }
