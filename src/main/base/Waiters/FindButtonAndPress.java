@@ -32,24 +32,8 @@ public class FindButtonAndPress {
 
     public static boolean findAndClickFull(String imagePath) {
         synchronized (searchLock) {
-            final int maxAttempts = config.getAttemptsAmount();
-            final int delayMs = config.getSearchDelayMs();
-
-            for (int attempt = 1; attempt <= maxAttempts; attempt++) {
-                System.out.printf("Attempt %d/%d for %s%n", attempt, maxAttempts, imagePath);
-
-                try {
-                    Point location = findButton(imagePath);
-                    if (location != null) {
-                        performClick(location);
-                        return true;
-                    }
-                    sleepSafe(delayMs);
-                } catch (Exception e) {
-                    System.err.println("Search error: " + e.getMessage());
-                }
-            }
-            handleFailure(maxAttempts);
+            if (findAndClickLogic(imagePath)) return true;
+            handleFailure();
             return false;
         }
     }
@@ -130,9 +114,7 @@ public class FindButtonAndPress {
         }
     }
 
-    private static void handleFailure(int maxAttempts) {
-        System.err.println("Кнопка не найдена после " + maxAttempts + " попыток");
-
+    private static void handleFailure() {
         if (config.isFailureNotification() && config.isNotificationsEnabled()) {
             try {
                 byte[] screenshot = Extractor.captureScreenshot();
@@ -153,6 +135,34 @@ public class FindButtonAndPress {
         boolean result = findAndClickFull(path);
         System.out.println(result ? "✓ Обнаружено" : "✗ Не найдено");
         return result;
+    }
+
+    public static boolean findAndClickScreenless(String image) {
+        synchronized (searchLock) {
+            String imagePath = config.getPicsToStartPath() + "/" + image;
+            return findAndClickLogic(imagePath);
+        }
+    }
+
+    private static boolean findAndClickLogic(String imagePath) {
+        final int maxAttempts = config.getAttemptsAmount();
+        final int delayMs = config.getSearchDelayMs();
+
+        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+            System.out.printf("Attempt %d/%d for %s%n", attempt, maxAttempts, imagePath);
+
+            try {
+                Point location = findButton(imagePath);
+                if (location != null) {
+                    performClick(location);
+                    return true;
+                }
+                sleepSafe(delayMs);
+            } catch (Exception e) {
+                System.err.println("Search error: " + e.getMessage());
+            }
+        }
+        return false;
     }
 
     public static boolean findAndClickWithMessage(String image, String message) {

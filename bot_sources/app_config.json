@@ -1,5 +1,5 @@
 {
-  "attemptsAmount" : 40,
+  "attemptsAmount" : 3,
   "successNotification" : true,
   "failureNotification" : true,
   "reportNotification" : true,
