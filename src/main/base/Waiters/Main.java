@@ -36,8 +36,10 @@ public class Main {
 
                 if (EndIsNear.end()) {
                     System.out.println("УСПЕХ! Основной цикл завершен.");
-
-                    sendMessages(config.getSuccessMessages());
+                        if (config.isSuccessNotification())
+                            sendMessages(config.getSuccessMessages());
+                        if (attempt > 1)
+                            sendMessages(config.getSuccessMessages());
                     break;
                 } else {
                     if (attempt < maxAttempts) {
