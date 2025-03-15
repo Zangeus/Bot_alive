@@ -23,6 +23,5 @@ public class Launcher {
         if (!config.isMonitoringEnabled())
             Main.main(args);
         else Monitoring.monitor();
-
     }
 }

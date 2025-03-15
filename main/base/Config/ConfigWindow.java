@@ -98,7 +98,7 @@ public class ConfigWindow extends JFrame {
         setLocationRelativeTo(null);
 
         // Иконка приложения
-        ImageIcon icon = new ImageIcon(Objects.requireNonNull(getClass().getResource("/icon.png")));
+        ImageIcon icon = new ImageIcon(Objects.requireNonNull(getClass().getResource("/main/resources/icon.png")));
         if (icon.getImage() != null) {
             setIconImage(icon.getImage());
         }

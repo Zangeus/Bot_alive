@@ -2,6 +2,7 @@ package End;
 
 import Config.ConfigManager;
 import Config.LauncherConfig;
+import Waiters.Extractor;
 import Waiters.TelegramBotSender;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef;
@@ -15,32 +16,27 @@ import static Waiters.FindButtonAndPress.*;
 
 public class EndIsNear {
     private static final LauncherConfig config = ConfigManager.loadConfig();
-    private static final String WINDOW_TITLE = "src";
+    private static final WinDef.HWND hwnd = User32.INSTANCE.FindWindow(null, "src");
 
     public static boolean end() {
         try {
             focusApplicationWindow();
 
-            System.out.println("─── Starting main check ───");
-
             if (config.isMondayCheckEnabled() && LocalDateTime.now().getDayOfWeek() == DayOfWeek.MONDAY) {
                 for (int i = 0; i < 8; i++) {
-                    if (findAndClick("checking.png")) {
-                        return findAndClickWithOneMessage("stop.png",
-                                "Кнопка остановки не была найдена") &&
-                                findAndClickForTasks("tasks_done.png");
+                    focusApplicationWindow();
+
+                    if (findAndClickScreenless("SU_end.png")) {
+                        return findAndClickForTasks("tasks_done.png");
+
                     } else sleep(3);
                 }
-                TelegramBotSender.sendNoteMessage("Очередной баг в виртуалке");
+                TelegramBotSender
+                        .sendPhoto(Extractor.captureScreenshot()
+                        , "Очередной баг в виртуалке");
                 return false;
             }
-            else if (!findAndClickWithOneMessageAndDelay("checking.png",
-                    "Кнопка завершения работы бота не была найдена", 2000))
-                return false;
-
-            return findAndClickWithOneMessage("stop.png",
-                    "Кнопка остановки не была найдена") &&
-                    findAndClickForTasks("tasks_done.png");
+            else return findAndClickForTasks("tasks_done.png");
 
         } catch (Exception e) {
             System.err.println("Критическая ошибка: " + e.getMessage());
@@ -58,11 +54,9 @@ public class EndIsNear {
     }
 
     private static void focusApplicationWindow() {
-        WinDef.HWND hwnd = User32.INSTANCE.FindWindow(null, WINDOW_TITLE);
         if (hwnd != null) {
             User32.INSTANCE.ShowWindow(hwnd, WinUser.SW_RESTORE);
             User32.INSTANCE.SetForegroundWindow(hwnd);
-            System.out.println("Окно приложения активировано");
         }
     }
 }

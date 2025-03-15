@@ -12,7 +12,7 @@ public class StartIsHere {
         activateWindows();
 
         if (!findAndClickWithOneMessageAndDelay("start.png"
-                , "Кнопка для старта не была найдена", 2000))
+                , "Кнопка для старта не была найдена", 6000))
             return false;
 
         return findAndClickWithOneMessage("start_button.png", "Не удалось найти кнопку запуска");

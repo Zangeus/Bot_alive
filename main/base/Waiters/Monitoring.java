@@ -14,31 +14,37 @@ import static Waiters.FindButtonAndPress.findAndClickScreenless;
 public class Monitoring {
     private static final String WINDOW_TITLE = "src";
     private static final int minutesBetweenIterations = 10;
-    private static final int secondsAfterMessages = 5;
+    private static boolean criticalFail;
 
     public static void monitor() {
-        do focusApplicationWindow();
+        do {
+            sleep(minutesBetweenIterations);
+            focusApplicationWindow();
+
+            if (criticalFail) restart();
+            criticalFail = false;
+
+            findAndClickScreenless("overview.png");
+        }
         while (!handleCriticalSituation());
+
     }
 
     private static boolean handleCriticalSituation() {
         if (findAndClickScreenless("critical.png")) {
-            restart();
+            criticalFail = true;
             return false;
         }
 
-        if (!checkAndHandle("checking.png")) return false;
-        if (!checkAndHandle("su_button.png")) return false;
-        if (!checkAndHandle("elites_farm.png")) return false;
+        if (checkFailed("su_button.png")) return false;
+        if (checkFailed("elites_farm.png")) return false;
 
         executeEmergencyProtocol();
         return true;
     }
 
-    private static boolean checkAndHandle(String image) {
-        if (findAndClickScreenless(image)) return true;
-        restart();
-        return false;
+    private static boolean checkFailed(String image) {
+        return !findAndClickScreenless(image);
     }
 
     private static void executeEmergencyProtocol() {
@@ -46,7 +52,6 @@ public class Monitoring {
         TelegramBotSender.sendLocalPhoto(imagePath);
 
         TelegramBotSender.sendNoteMessage("Легендарный квест 1001-ночи был завершен");
-        sleep(secondsAfterMessages);
 
         CloseProcess.terminateProcesses();
         performEmergencyShutdown();
@@ -65,9 +70,9 @@ public class Monitoring {
         }
     }
 
-    private static void sleep(int seconds) {
+    private static void sleep(int minutes) {
         try {
-            TimeUnit.SECONDS.sleep(seconds);
+            TimeUnit.MINUTES.sleep(minutes);
         } catch (InterruptedException e) {
             System.out.println(e.getMessage());
         }
@@ -83,8 +88,6 @@ public class Monitoring {
     }
 
     private static void focusApplicationWindow() {
-        sleep(60 * minutesBetweenIterations);
-
         WinDef.HWND hwnd = User32.INSTANCE.FindWindow(null, WINDOW_TITLE);
         if (hwnd != null) {
             User32.INSTANCE.ShowWindow(hwnd, WinUser.SW_RESTORE);
