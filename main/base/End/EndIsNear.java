@@ -3,6 +3,7 @@ package End;
 import Config.ConfigManager;
 import Config.LauncherConfig;
 import Waiters.Extractor;
+import Waiters.Monitoring;
 import Waiters.TelegramBotSender;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef;
@@ -22,21 +23,30 @@ public class EndIsNear {
         try {
             focusApplicationWindow();
 
-            if (config.isMondayCheckEnabled() && LocalDateTime.now().getDayOfWeek() == DayOfWeek.MONDAY) {
-                for (int i = 0; i < 8; i++) {
-                    focusApplicationWindow();
-
-                    if (findAndClickScreenless("SU_end.png")) {
-                        return findAndClickForTasks("tasks_done.png");
-
-                    } else sleep(3);
+            if (config.isAfterMainMonitoringEnabled())
+                if (Monitoring.monitorAfterMain()
+                        && findAndClickScreenless("checking.png")) {
+                    return findAndClickForTasks("tasks_done.png");
                 }
-                TelegramBotSender
-                        .sendPhoto(Extractor.captureScreenshot()
-                        , "Очередной баг в виртуалке");
-                return false;
-            }
-            else return findAndClickForTasks("tasks_done.png");
+            else if (config.isMondayCheckEnabled()
+            && LocalDateTime.now().getDayOfWeek() == DayOfWeek.MONDAY) {
+                    for (int i = 0; i < 12; i++) {
+                        focusApplicationWindow();
+
+                        if (findAndClickScreenless("checking.png") &&
+                                findAndClickScreenless("SU_end.png")) {
+                            return findAndClickForTasks("tasks_done.png");
+                        } else sleep(3);
+                    }
+                    TelegramBotSender
+                            .sendPhoto(Extractor.captureScreenshot()
+                                    , "Очередной баг в виртуалке");
+                    return false;
+                }
+
+            return findAndClickWithOneMessage("checking.png"
+                    , "Кажется завершение пошло не по сценарию")
+                    && findAndClickForTasks("tasks_done.png");
 
         } catch (Exception e) {
             System.err.println("Критическая ошибка: " + e.getMessage());

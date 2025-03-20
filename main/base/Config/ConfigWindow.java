@@ -35,6 +35,7 @@ public class ConfigWindow extends JFrame {
     private JCheckBox mondayCheck;
     private JSpinner sleepDurationSpinner;
     private JCheckBox takeTheMailCheck;
+    private JCheckBox afterMainMonitoringCheck;
 
     // Компоненты панели мониторинга
     private JLabel monitoringStatusLabel = new JLabel(); // Инициализация здесь
@@ -499,6 +500,7 @@ public class ConfigWindow extends JFrame {
         reportCheck = new JCheckBox("Отправлять отчет", config.isReportNotification());
         mondayCheck = new JCheckBox("Активировать проверки в понедельник", config.isMondayCheckEnabled());
         takeTheMailCheck = new JCheckBox("Взять почту", config.isTakeTheMailEnabled());
+        afterMainMonitoringCheck = new JCheckBox("Включить мониторинг после всего", config.isAfterMainMonitoringEnabled());
 
         // Добавление компонентов
         addLabeledComponent(panel, "Количество попыток:", attemptsSpinner, 0, gbc);
@@ -511,18 +513,19 @@ public class ConfigWindow extends JFrame {
         addCheckbox(panel, failureCheck, 3, gbc);
         addCheckbox(panel, reportCheck, 4, gbc);
         addCheckbox(panel, mondayCheck, 5, gbc);
-        addCheckbox(panel, takeTheMailCheck, 6, gbc);
+        addCheckbox(panel, afterMainMonitoringCheck, 6, gbc);
+        addCheckbox(panel, takeTheMailCheck, 7, gbc);
 
         // Блок мониторинга
-        gbc.gridy = 7;
+        gbc.gridy = 8;
         gbc.weighty = 0.5;
         panel.add(Box.createGlue(), gbc);
 
-        gbc.gridy = 8;
+        gbc.gridy = 9;
         panel.add(createMonitoringPanel(), gbc);
 
         // Пустое пространство
-        gbc.gridy = 9;
+        gbc.gridy = 10;
         gbc.weighty = 1.0;
         panel.add(Box.createGlue(), gbc);
 
@@ -624,6 +627,7 @@ public class ConfigWindow extends JFrame {
         config.setReportNotification(reportCheck.isSelected());
         config.setMondayCheckEnabled(mondayCheck.isSelected());
         config.setTakeTheMailEnabled(takeTheMailCheck.isSelected());
+        config.setAfterMainMonitoringEnabled(afterMainMonitoringCheck.isSelected());
 
         config.setBotToken(botTokenField.getText());
         config.setChatId(chatIdField.getText());

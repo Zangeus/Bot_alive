@@ -14,37 +14,41 @@ import static Waiters.FindButtonAndPress.findAndClickScreenless;
 public class Monitoring {
     private static final String WINDOW_TITLE = "src";
     private static final int minutesBetweenIterations = 10;
-    private static boolean criticalFail;
 
-    public static void monitor() {
-        do {
-            sleep(minutesBetweenIterations);
+    public static void monitorStart() {
+        while (true) {
             focusApplicationWindow();
+            if (findAndClickScreenless("critical.png") ||
+                    findAndClickScreenless("critical_2.png")) {
+                restart();
+                sleep(minutesBetweenIterations);
+                continue;
+            }
 
-            if (criticalFail) restart();
-            criticalFail = false;
+            if (check("su_button.png") &&
+                    check("elites_farm.png")) {
+                check(("overview.png"));
+                break;
+            }
 
-            findAndClickScreenless("overview.png");
+            check(("overview.png"));
+            sleep(minutesBetweenIterations);
         }
-        while (!handleCriticalSituation());
-
     }
 
-    private static boolean handleCriticalSituation() {
-        if (findAndClickScreenless("critical.png")) {
-            criticalFail = true;
-            return false;
-        }
-
-        if (checkFailed("su_button.png")) return false;
-        if (checkFailed("elites_farm.png")) return false;
-
-        executeEmergencyProtocol();
+    public static boolean monitorAfterMain() {
+        monitorStart();
+        System.out.println("Мониторинг проведен");
         return true;
     }
 
-    private static boolean checkFailed(String image) {
-        return !findAndClickScreenless(image);
+    public static void monitor() {
+        monitorStart();
+        executeEmergencyProtocol();
+    }
+
+    private static boolean check(String image) {
+        return findAndClickScreenless(image);
     }
 
     private static void executeEmergencyProtocol() {

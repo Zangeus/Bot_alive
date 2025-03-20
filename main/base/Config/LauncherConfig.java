@@ -28,6 +28,15 @@ public class LauncherConfig {
     private boolean mondayCheckEnabled = true;
     private boolean monitoringEnabled = true;
     private boolean takeTheMailEnabled = true;
+    private boolean afterMainMonitoringEnabled = true;
+
+    public boolean isAfterMainMonitoringEnabled() {
+        return afterMainMonitoringEnabled;
+    }
+
+    public void setAfterMainMonitoringEnabled(boolean afterMainMonitoringEnabled) {
+        this.afterMainMonitoringEnabled = afterMainMonitoringEnabled;
+    }
 
     public boolean isTakeTheMailEnabled() {
         return takeTheMailEnabled;
@@ -143,6 +152,7 @@ public class LauncherConfig {
         if (successMessages == null) successMessages = new ArrayList<>();
         return successMessages;
     }
+
     public void setSuccessMessages(List<String> successMessages) {
         this.successMessages = successMessages;
     }
@@ -151,6 +161,7 @@ public class LauncherConfig {
         if (failureMessages == null) failureMessages = new ArrayList<>();
         return failureMessages;
     }
+
     public void setFailureMessages(List<String> failureMessages) {
         this.failureMessages = failureMessages;
     }

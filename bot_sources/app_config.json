@@ -18,5 +18,6 @@
   "sleepDurationMinutes" : 1,
   "mondayCheckEnabled" : true,
   "monitoringEnabled" : false,
-  "takeTheMailEnabled" : true
+  "takeTheMailEnabled" : true,
+  "afterMainMonitoringEnabled" : true
 }
