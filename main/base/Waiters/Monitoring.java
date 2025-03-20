@@ -14,6 +14,7 @@ import static Waiters.FindButtonAndPress.findAndClickScreenless;
 public class Monitoring {
     private static final String WINDOW_TITLE = "src";
     private static final int minutesBetweenIterations = 10;
+    private static boolean picToSend = false;
 
     public static void monitorStart() {
         while (true) {
@@ -28,9 +29,11 @@ public class Monitoring {
             if (check("su_button.png") &&
                     check("elites_farm.png")) {
                 check(("overview.png"));
+                if (picToSend) sendPhoto();
                 break;
             }
 
+            picToSend = true;
             check(("overview.png"));
             sleep(minutesBetweenIterations);
         }
@@ -38,7 +41,6 @@ public class Monitoring {
 
     public static boolean monitorAfterMain() {
         monitorStart();
-        System.out.println("Мониторинг проведен");
         return true;
     }
 
@@ -52,14 +54,17 @@ public class Monitoring {
     }
 
     private static void executeEmergencyProtocol() {
+        CloseProcess.terminateProcesses();
+        performEmergencyShutdown();
+    }
+
+    public static void sendPhoto() {
         String imagePath = "bot_sources/SU.png";
         TelegramBotSender.sendLocalPhoto(imagePath);
 
         TelegramBotSender.sendNoteMessage("Легендарный квест 1001-ночи был завершен");
-
-        CloseProcess.terminateProcesses();
-        performEmergencyShutdown();
     }
+
 
     private static void restart() {
         CloseProcess.terminateProcesses();
