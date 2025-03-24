@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 
 import static Waiters.ClickByCoords.activateAndClick;
 import static Waiters.ClickByCoords.activateWindow;
+import static Waiters.ClickByCoords.performClick;
 import static Waiters.FindButtonAndPress.*;
 
 public class Monitoring {
@@ -18,10 +19,10 @@ public class Monitoring {
             new Point(970, 444),
             new Point(940, 666),
             new Point(915, 520),
-            new Point(780, 675),
     };
 
-    private static final int minutesBetweenIterations = 10;
+    private static final String MINUTES = "MINUTES";
+    private static final String SECONDS = "SECONDS";
     private static boolean picToSend = false;
 
     public static void monitorStart() {
@@ -29,13 +30,13 @@ public class Monitoring {
             activateWindow(src);
             if (findAndClickScreenless("critical.png")) {
                 refresh();
-                sleep(minutesBetweenIterations);
+                sleep(10, MINUTES);
                 continue;
             }
 
             if (findAndClickScreenless("critical_2.png")) {
                 restart();
-                sleep(minutesBetweenIterations);
+                sleep(10, MINUTES);
                 continue;
             }
 
@@ -48,7 +49,7 @@ public class Monitoring {
 
             picToSend = true;
             check(("overview.png"));
-            sleep(minutesBetweenIterations);
+            sleep(10, MINUTES);
         }
     }
 
@@ -80,16 +81,20 @@ public class Monitoring {
 
 
     private static void refresh() {
-        activateAndClick(MuMu, CLICK_POINTS, 2000);
+        activateAndClick(MuMu, CLICK_POINTS, 3000);
+        sleep(3, "SECONDS");
+        performClick(780, 675,0);
 
         activateWindow(src);
         findAndClickWithOneMessage("start_button.png", "Не удалось найти кнопку запуска");
-
     }
 
-    private static void sleep(int minutes) {
+    private static void sleep(int amount, String type) {
         try {
-            TimeUnit.MINUTES.sleep(minutes);
+            switch (type) {
+                case MINUTES: TimeUnit.SECONDS.sleep(60L * amount); break;
+                case SECONDS: TimeUnit.SECONDS.sleep(amount); break;
+            }
         } catch (InterruptedException e) {
             System.out.println(e.getMessage());
         }

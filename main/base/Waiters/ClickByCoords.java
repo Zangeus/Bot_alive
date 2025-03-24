@@ -44,11 +44,15 @@ public class ClickByCoords {
         if (e != null) System.out.println(e.getMessage());
     }
 
-    public static void performClick(int x, int y, int DELAY_MS) throws InterruptedException {
+    public static void performClick(int x, int y, int DELAY_MS) {
         robot.mouseMove(x, y);
         robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
         robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
-        sleep(DELAY_MS);
+        try {
+            sleep(DELAY_MS);
+        } catch (InterruptedException e) {
+            logError("Critical error", e);
+        }
     }
 
     public static void activateAndClick(String WINDOW_TITLE
