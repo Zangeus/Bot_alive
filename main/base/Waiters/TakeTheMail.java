@@ -2,14 +2,11 @@ package Waiters;
 
 import Config.ConfigManager;
 import Config.LauncherConfig;
-import com.sun.jna.platform.win32.User32;
-import com.sun.jna.platform.win32.WinDef;
-import com.sun.jna.platform.win32.WinUser;
 
 import java.awt.*;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 
+import static Waiters.ClickByCoords.*;
 import static java.lang.Thread.sleep;
 
 public class TakeTheMail {
@@ -38,17 +35,8 @@ public class TakeTheMail {
 
     public static void take() {
         if (!config.isTakeTheMailEnabled()) return;
-        try {
-            if (!activateWindow()) return;
-            sleep(MailConfig.DELAY_MS);
-
-            for (Point p : MailConfig.CLICK_POINTS) {
-                performClick(p.x, p.y);
-            }
-            performActions();
-        } catch (Exception e) {
-            logError("Critical error", e);
-        }
+        activateAndClick(MailConfig.WINDOW_TITLE, MailConfig.CLICK_POINTS, MailConfig.DELAY_MS);
+        performActions();
     }
 
     static void pressEsc() throws InterruptedException {
@@ -57,38 +45,15 @@ public class TakeTheMail {
         robot.keyRelease(KeyEvent.VK_ESCAPE);
     }
 
-    private static boolean activateWindow() throws InterruptedException {
-        final int MAX_ATTEMPTS = 3;
-        for (int i = 0; i < MAX_ATTEMPTS; i++) {
-            WinDef.HWND hwnd = User32.INSTANCE.FindWindow(null, MailConfig.WINDOW_TITLE);
-            if (hwnd != null) {
-                User32.INSTANCE.ShowWindow(hwnd, WinUser.SW_RESTORE);
-                User32.INSTANCE.SetForegroundWindow(hwnd);
-                return true;
-            }
-            sleep(1000);
+    private static void performActions() {
+        try {
+            performClick(MailConfig.BACK_BUTTON.x, MailConfig.BACK_BUTTON.y, MailConfig.DELAY_MS);
+            pressEsc();
+            pressEsc();
+            sleep(MailConfig.DELAY_MS);
+        } catch (InterruptedException e) {
+            System.out.println(e.getMessage());
         }
-        logError("Window not found: " + MailConfig.WINDOW_TITLE, null);
-        return false;
-    }
-
-    private static void logError(String message, Exception e) {
-        System.err.println("[ERROR] " + message);
-        if (e != null) System.out.println(e.getMessage());
-    }
-
-    private static void performClick(int x, int y) throws InterruptedException {
-        robot.mouseMove(x, y);
-        robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
-        robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
-        sleep(MailConfig.DELAY_MS);
-    }
-
-    private static void performActions() throws InterruptedException {
-        performClick(MailConfig.BACK_BUTTON.x, MailConfig.BACK_BUTTON.y);
-        pressEsc();
-        pressEsc();
-        sleep(MailConfig.DELAY_MS);
     }
 }
 

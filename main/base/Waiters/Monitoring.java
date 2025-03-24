@@ -2,25 +2,38 @@ package Waiters;
 
 import End.CloseProcess;
 import Start.StartIsHere;
-import com.sun.jna.platform.win32.User32;
-import com.sun.jna.platform.win32.WinDef;
-import com.sun.jna.platform.win32.WinUser;
 
+import java.awt.*;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import static Waiters.FindButtonAndPress.findAndClickScreenless;
+import static Waiters.ClickByCoords.activateAndClick;
+import static Waiters.ClickByCoords.activateWindow;
+import static Waiters.FindButtonAndPress.*;
 
 public class Monitoring {
-    private static final String WINDOW_TITLE = "src";
+    private static final String MuMu = "MuMu Player 12";
+    private static final String src = "src";
+    private static final Point[] CLICK_POINTS = {
+            new Point(970, 444),
+            new Point(940, 666),
+            new Point(915, 520),
+            new Point(780, 675),
+    };
+
     private static final int minutesBetweenIterations = 10;
     private static boolean picToSend = false;
 
     public static void monitorStart() {
         while (true) {
-            focusApplicationWindow();
-            if (findAndClickScreenless("critical.png") ||
-                    findAndClickScreenless("critical_2.png")) {
+            activateWindow(src);
+            if (findAndClickScreenless("critical.png")) {
+                refresh();
+                sleep(minutesBetweenIterations);
+                continue;
+            }
+
+            if (findAndClickScreenless("critical_2.png")) {
                 restart();
                 sleep(minutesBetweenIterations);
                 continue;
@@ -66,17 +79,12 @@ public class Monitoring {
     }
 
 
-    private static void restart() {
-        CloseProcess.terminateProcesses();
-        for (int i = 0; i <= 3; i++) {
-            try {
-                if (StartIsHere.start()) break;
-                else if (i == 3) TelegramBotSender
-                        .sendNoteMessage("Не удалось запустить бота");
-            } catch (InterruptedException e) {
-                System.out.println(e.getMessage());
-            }
-        }
+    private static void refresh() {
+        activateAndClick(MuMu, CLICK_POINTS, 2000);
+
+        activateWindow(src);
+        findAndClickWithOneMessage("start_button.png", "Не удалось найти кнопку запуска");
+
     }
 
     private static void sleep(int minutes) {
@@ -96,12 +104,16 @@ public class Monitoring {
         }
     }
 
-    private static void focusApplicationWindow() {
-        WinDef.HWND hwnd = User32.INSTANCE.FindWindow(null, WINDOW_TITLE);
-        if (hwnd != null) {
-            User32.INSTANCE.ShowWindow(hwnd, WinUser.SW_RESTORE);
-            User32.INSTANCE.SetForegroundWindow(hwnd);
-            System.out.println("Окно приложения активировано");
+    private static void restart() {
+        CloseProcess.terminateProcesses();
+        for (int i = 0; i <= 3; i++) {
+            try {
+                if (StartIsHere.start()) break;
+                else if (i == 3) TelegramBotSender
+                        .sendNoteMessage("Не удалось запустить бота");
+            } catch (InterruptedException e) {
+                System.out.println(e.getMessage());
+            }
         }
     }
 }
