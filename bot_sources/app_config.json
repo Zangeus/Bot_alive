@@ -17,7 +17,7 @@
   "reportWithScreenshot" : false,
   "sleepDurationMinutes" : 1,
   "mondayCheckEnabled" : true,
-  "monitoringEnabled" : true,
+  "monitoringEnabled" : false,
   "takeTheMailEnabled" : true,
   "afterMainMonitoringEnabled" : true
 }
