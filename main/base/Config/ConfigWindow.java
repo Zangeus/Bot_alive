@@ -3,22 +3,20 @@ package Config;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.awt.event.*;
+import java.awt.image.BufferedImage;
+import java.io.*;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import Waiters.Main;
+
 import org.w3c.dom.events.MouseEvent;
 
 public class ConfigWindow extends JFrame {
-    private final LauncherConfig config;
+    private static final LauncherConfig config = ConfigManager.loadConfig();
     private final Color middleGray = Color.WHITE;//new Color(50, 50, 50);
 
     // Компоненты интерфейса
@@ -37,18 +35,16 @@ public class ConfigWindow extends JFrame {
     private JCheckBox takeTheMailCheck;
     private JCheckBox afterMainMonitoringCheck;
 
-    // Компоненты панели мониторинга
-    private JLabel monitoringStatusLabel = new JLabel(); // Инициализация здесь
-    private JButton monitoringToggleButton = new JButton(); // Инициализация здесь
+    private JLabel monitoringStatusLabel = new JLabel();
+    private JButton monitoringToggleButton = new JButton();
 
     private static final Font SMALLER_FONT = new Font("Segoe UI", Font.PLAIN, 12);
 
-    private static final Color PRIMARY_COLOR = new Color(70, 130, 180);    // SteelBlue
-    private static final Color SUCCESS_COLOR = new Color(60, 179, 113);    // MediumSeaGreen
-    private static final Color DANGER_COLOR = new Color(220, 80, 80);      // IndianRed
-    private static final Color WARNING_COLOR = new Color(255, 165, 0);     // Orange
-    private static final Color TEXT_COLOR = new Color(50, 50, 50);         // Темно-серый
-    private static final Color BACKGROUND_COLOR = new Color(245, 245, 245);// Светло-серый
+    private static final Color PRIMARY_COLOR = new Color(70, 130, 180);
+    private static final Color DANGER_COLOR = new Color(220, 80, 80);
+    private static final Color WARNING_COLOR = new Color(255, 165, 0);
+    private static final Color TEXT_COLOR = new Color(50, 50, 50);
+    private static final Color BACKGROUND_COLOR = new Color(245, 245, 245);
 
     // Шрифты
     private static final Font BASE_FONT = new Font("Segoe UI", Font.PLAIN, 14);
@@ -56,11 +52,11 @@ public class ConfigWindow extends JFrame {
     private static final Font TITLE_FONT = new Font("Segoe UI SemiBold", Font.BOLD, 18);
     private static final Font BUTTON_FONT = new Font("Segoe UI SemiBold", Font.BOLD, 14);
 
-
+    private static final int MIN_WIDTH = 800;
+    private static final int MAX_WIDTH = 950;
+    private static final int PREF_HEIGHT = 600;
 
     public ConfigWindow() {
-        config = ConfigManager.loadConfig();
-
         // Инициализация компонентов
         botTokenField = new JTextField();
         chatIdField = new JTextField();
@@ -75,7 +71,6 @@ public class ConfigWindow extends JFrame {
     private void initUI() {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-
             // Глобальные настройки стилей
             UIManager.put("Button.arc", 8);
             UIManager.put("Component.arc", 8);
@@ -88,21 +83,41 @@ public class ConfigWindow extends JFrame {
             UIManager.put("CheckBox.font", BASE_FONT);
             UIManager.put("TabbedPane.font", TITLE_FONT);
 
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
         setTitle("Настройки");
-        setSize(800, 600);
-        setMinimumSize(new Dimension(800, 600));
-        setPreferredSize(new Dimension(800, 600));
+
         setLayout(new BorderLayout());
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        //setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setUndecorated(true);
         setLocationRelativeTo(null);
 
-        // Иконка приложения
         ImageIcon icon = new ImageIcon(Objects.requireNonNull(getClass().getResource("/main/resources/icon.png")));
         if (icon.getImage() != null) {
             setIconImage(icon.getImage());
         }
+
+
+        ImageIcon bgIcon = new ImageIcon(new File(
+                config.getPicsToStartPath() + "\\" + "background.png").getAbsolutePath());
+        Image backgroundImage = bgIcon.getImage();
+
+        int imageWidth = (backgroundImage != null) ? bgIcon.getIconWidth() : 0;
+        int calculatedWidth = Math.min(Math.max(MIN_WIDTH, imageWidth), MAX_WIDTH);
+
+        setSize(calculatedWidth, PREF_HEIGHT);
+        setPreferredSize(new Dimension(calculatedWidth, PREF_HEIGHT));
+        setMinimumSize(new Dimension(MIN_WIDTH, PREF_HEIGHT));
+        setMaximumSize(new Dimension(MAX_WIDTH, PREF_HEIGHT));
+        setResizable(false);
+
+        setLocationRelativeTo(null);
+
+        BackgroundPanel bgPanel = new BackgroundPanel(bgIcon.getImage(), 0.75f);
+        bgPanel.setOpaque(true);
+        setContentPane(bgPanel);
 
         addWindowListener(new WindowAdapter() {
             @Override
@@ -119,10 +134,19 @@ public class ConfigWindow extends JFrame {
         tabbedPane.addTab("Telegram", createTelegramPanel());
         tabbedPane.addTab("Пути", createPathsPanel());
         tabbedPane.addTab("Сообщения", createMessagesPanel());
+        tabbedPane.setOpaque(true);
 
         add(tabbedPane, BorderLayout.CENTER);
         add(createButtonPanel(), BorderLayout.SOUTH);
 
+        bgPanel.setOpaque(true);
+        JPanel centerPanel = new JPanel(new BorderLayout());
+        centerPanel.setOpaque(true);
+        centerPanel.add(tabbedPane, BorderLayout.CENTER);
+        bgPanel.add(centerPanel, BorderLayout.CENTER);
+        bgPanel.add(createButtonPanel(), BorderLayout.SOUTH);
+
+        bgPanel.add(createButtonPanel(), BorderLayout.SOUTH);
         // Установка начальных значений
         botTokenField.setText(config.getBotToken());
         chatIdField.setText(config.getChatId());
@@ -131,9 +155,10 @@ public class ConfigWindow extends JFrame {
         failureMessagesArea.setText(String.join("\n", config.getFailureMessages()));
         reportMessagesArea.setText(String.join("\n", config.getReportMessages()));
     }
+
     private JPanel createButtonPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 10));
-        panel.setBackground(BACKGROUND_COLOR);
+        panel.setOpaque(true);
 
         JButton saveBtn = new JButton("Сохранить");
         JButton cancelBtn = new JButton("Отмена");
@@ -349,7 +374,6 @@ public class ConfigWindow extends JFrame {
         browseBtn.setPreferredSize(new Dimension(120, 35));
 
 
-
         gbc.gridx = 2;
         gbc.fill = GridBagConstraints.NONE;
         panel.add(browseBtn, gbc);
@@ -388,6 +412,7 @@ public class ConfigWindow extends JFrame {
 
     private void styleButton(JButton button, Color bgColor, Color textColor) {
         // Основные настройки
+
         button.setFont(BUTTON_FONT.deriveFont(Font.BOLD));
         button.setForeground(textColor);
         button.setBackground(bgColor);
@@ -408,14 +433,14 @@ public class ConfigWindow extends JFrame {
         button.addMouseListener(new MouseAdapter() {
             private final Timer timer = new Timer(10, e -> {
                 float alpha = button.getModel().isRollover() ?
-                        Math.min(1f, button.getBackground().getAlpha()/255f + 0.1f) :
-                        Math.max(0.5f, button.getBackground().getAlpha()/255f - 0.1f);
+                        Math.min(1f, button.getBackground().getAlpha() / 255f + 0.1f) :
+                        Math.max(0.5f, button.getBackground().getAlpha() / 255f - 0.1f);
 
                 button.setBackground(new Color(
                         bgColor.getRed(),
                         bgColor.getGreen(),
                         bgColor.getBlue(),
-                        (int)(alpha * 255)
+                        (int) (alpha * 255)
                 ));
 
                 button.repaint();
@@ -620,6 +645,7 @@ public class ConfigWindow extends JFrame {
     }
 
     private void saveConfig(ActionEvent e) {
+        // Сохранение конфига (прежний код)
         config.setAttemptsAmount((Integer) attemptsSpinner.getValue());
         config.setSleepDurationMinutes((Integer) sleepDurationSpinner.getValue());
         config.setSuccessNotification(successCheck.isSelected());
@@ -638,10 +664,182 @@ public class ConfigWindow extends JFrame {
         config.setReportMessages(Arrays.asList(reportMessagesArea.getText().split("\n")));
 
         ConfigManager.saveConfig(config);
-        JOptionPane.showMessageDialog(this, "Настройки сохранены!");
-        dispose();
+        showConfirmationPanel();
     }
 
-    // Остальные методы (createMessagesPanel, createTelegramPanel,
-    // createPathsPanel, createButtonPanel и другие) остаются без изменений
+    private void showConfirmationPanel() {
+        getContentPane().removeAll();
+
+        // Основная панель для анимации
+        JLayeredPane animationPane = new JLayeredPane();
+        animationPane.setPreferredSize(getSize());
+
+        // Счетчик для чередования цветов
+        AtomicInteger colorCounter = new AtomicInteger(0);
+
+        // Переменная для ускорения
+        AtomicInteger delay = new AtomicInteger(100);
+
+        // Первоначальная надпись в центре
+        JLabel centerLabel =
+                createAnimatedLabel(getWidth()/2, getHeight()/2, colorCounter.getAndIncrement() % 2);
+        animationPane.add(centerLabel, JLayeredPane.DEFAULT_LAYER);
+
+        getContentPane().add(animationPane);
+        revalidate();
+        repaint();
+
+        // Таймер для анимации
+        Timer spreadTimer = new Timer(delay.get(), new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Добавляем 5 новых меток
+                for(int i = 0; i < 5; i++) {
+                    JLabel label = createAnimatedLabel(
+                            (int)(Math.random() * getWidth()),
+                            (int)(Math.random() * getHeight()),
+                            colorCounter.getAndIncrement() % 2
+                    );
+                    animationPane.add(label);
+                    animationPane.moveToFront(label);
+                }
+
+                // Ускоряем анимацию
+                if(delay.get() > 20) {
+                    delay.set(delay.get() - 2);
+                    ((Timer)e.getSource()).setDelay(delay.get());
+                }
+
+                animationPane.revalidate();
+                animationPane.repaint();
+            }
+        });
+
+        // Таймер для завершения работы
+        Timer exitTimer = new Timer(2000, e -> System.exit(0));
+        exitTimer.setRepeats(false);
+
+        // Запускаем таймеры
+        spreadTimer.start();
+        exitTimer.start();
+    }
+
+    private static Font customFont;
+
+    static {
+        try (InputStream is = new FileInputStream(config.getPicsToStartPath() + File.separator + "font.ttf")) {
+            customFont = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(26f);
+        } catch (Exception e) {
+            customFont = null; // Фоллбэк на стандартный шрифт
+        }
+    }
+
+    private JLabel createAnimatedLabel(int x, int y, int colorType) {
+        JLabel label = new JLabel("セーブ完了");
+
+        Font defaultFont = new Font(Font.SANS_SERIF, Font.BOLD, 26);
+        label.setFont(defaultFont);
+
+        if (customFont != null) {
+            label.setFont(customFont);
+        }
+
+        // Чередуем цвета: 0 - белый, 1 - красный
+        Color startColor = colorType == 0 ?
+                new Color(0, 180, 76, 250):
+                new Color(255, 50, 50, 200);
+
+        label.setForeground(startColor);
+        label.setSize(label.getPreferredSize());
+        label.setLocation(x - label.getWidth()/2, y - label.getHeight()/2);
+
+        // Анимация исчезновения с ускорением
+        Timer fadeTimer = new Timer(50, new ActionListener() {
+            private float alpha = 200;
+            private int yOffset = 0;
+            private float speed = 1.5f;
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                alpha -= 4;
+                yOffset += speed;
+                speed *= 1.1;
+
+                if(alpha <= 0) {
+                    ((Timer)e.getSource()).stop();
+                    label.setVisible(false);
+                } else {
+                    label.setForeground(new Color(
+                            label.getForeground().getRed(),
+                            label.getForeground().getGreen(),
+                            label.getForeground().getBlue(),
+                            (int)alpha
+                    ));
+                    label.setLocation(label.getX(), label.getY() - (int)yOffset);
+                    label.repaint();
+                }
+            }
+        });
+        fadeTimer.start();
+
+        return label;
+    }
+
+    class BackgroundPanel extends JPanel {
+        private final Image backgroundImage;
+        private final float transparency;
+        private Color edgeColor = Color.WHITE; // Цвет для заполнения боковых областей
+
+        public BackgroundPanel(Image backgroundImage, float transparency) {
+            this.backgroundImage = backgroundImage;
+            this.transparency = transparency;
+            setLayout(new BorderLayout());
+            calculateEdgeColor(); // Автоматический расчет цвета краев
+        }
+
+        private void calculateEdgeColor() {
+            try {
+                // Берем цвет из левого верхнего угла изображения
+                BufferedImage bufferedImage = (BufferedImage) backgroundImage;
+                int rgb = bufferedImage.getRGB(0, 0);
+                edgeColor = new Color(rgb);
+            } catch (Exception e) {
+                edgeColor = new Color(40, 40, 40); // Fallback цвет
+            }
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2d = (Graphics2D) g.create();
+
+            // Заливаем фон цветом краев
+            g2d.setColor(edgeColor);
+            g2d.fillRect(0, 0, getWidth(), getHeight());
+
+            if (backgroundImage != null) {
+                // Настройки рендеринга
+                g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                        RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+                g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, transparency));
+
+                // Рассчет масштаба
+                double widthRatio = (double) getWidth() / backgroundImage.getWidth(null);
+                double heightRatio = (double) getHeight() / backgroundImage.getHeight(null);
+                double scale = Math.max(widthRatio, heightRatio);
+
+                // Новые размеры
+                int scaledWidth = (int) (backgroundImage.getWidth(null) * scale);
+                int scaledHeight = (int) (backgroundImage.getHeight(null) * scale);
+
+                // Позиционирование
+                int x = (getWidth() - scaledWidth) / 2;
+                int y = (getHeight() - scaledHeight) / 2;
+
+                // Рисуем масштабированное изображение
+                g2d.drawImage(backgroundImage, x, y, scaledWidth, scaledHeight, null);
+            }
+            g2d.dispose();
+        }
+    }
 }

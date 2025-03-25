@@ -19,5 +19,5 @@
   "mondayCheckEnabled" : true,
   "monitoringEnabled" : false,
   "takeTheMailEnabled" : true,
-  "afterMainMonitoringEnabled" : true
+  "afterMainMonitoringEnabled" : false
 }

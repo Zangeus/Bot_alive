@@ -31,6 +31,4 @@ public class ConfigManager {
             System.err.println("Ошибка сохранения конфига: " + e.getMessage());
         }
     }
-
-
 }
