@@ -19,7 +19,6 @@ public class ConfigWindow extends JFrame {
     private static final LauncherConfig config = ConfigManager.loadConfig();
     private final Color middleGray = Color.WHITE;//new Color(50, 50, 50);
 
-    // Компоненты интерфейса
     private JTextField botTokenField;
     private JTextField chatIdField;
     private JTextField picsPathField;
@@ -57,7 +56,6 @@ public class ConfigWindow extends JFrame {
     private static final int PREF_HEIGHT = 600;
 
     public ConfigWindow() {
-        // Инициализация компонентов
         botTokenField = new JTextField();
         chatIdField = new JTextField();
         picsPathField = new JTextField();
@@ -71,7 +69,6 @@ public class ConfigWindow extends JFrame {
     private void initUI() {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            // Глобальные настройки стилей
             UIManager.put("Button.arc", 8);
             UIManager.put("Component.arc", 8);
             UIManager.put("TextComponent.arc", 5);
@@ -147,7 +144,6 @@ public class ConfigWindow extends JFrame {
         bgPanel.add(createButtonPanel(), BorderLayout.SOUTH);
 
         bgPanel.add(createButtonPanel(), BorderLayout.SOUTH);
-        // Установка начальных значений
         botTokenField.setText(config.getBotToken());
         chatIdField.setText(config.getChatId());
         picsPathField.setText(config.getPicsToStartPath());
@@ -162,8 +158,8 @@ public class ConfigWindow extends JFrame {
 
         JButton saveBtn = new JButton("Сохранить");
         JButton cancelBtn = new JButton("Отмена");
-        styleButton(saveBtn, new Color(15, 157, 88), Color.WHITE); // Зеленый
-        styleButton(cancelBtn, new Color(66, 133, 244), Color.WHITE); // Синий
+        styleButton(saveBtn, new Color(15, 157, 88), Color.WHITE);
+        styleButton(cancelBtn, new Color(66, 133, 244), Color.WHITE);
         saveBtn.addActionListener(this::saveConfig);
         cancelBtn.addActionListener(e -> dispose());
 
@@ -174,13 +170,12 @@ public class ConfigWindow extends JFrame {
 
     private JPanel createTelegramPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30)); // Отступы вокруг всей панели
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10); // Отступы между элементами
+        gbc.insets = new Insets(10, 10, 10, 10);
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Заголовок
         JLabel header = new JLabel("Настройки Telegram");
         header.setFont(HEADER_FONT.deriveFont(18f));
         header.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
@@ -189,7 +184,6 @@ public class ConfigWindow extends JFrame {
         gbc.gridy = 0;
         panel.add(header, gbc);
 
-        // Bot Token
         JLabel tokenLabel = new JLabel("Bot Token:");
         tokenLabel.setFont(BASE_FONT);
         gbc.gridwidth = 1;
@@ -205,7 +199,6 @@ public class ConfigWindow extends JFrame {
         gbc.gridx = 1;
         panel.add(botTokenField, gbc);
 
-        // Chat ID
         JLabel chatIdLabel = new JLabel("Chat ID:");
         chatIdLabel.setFont(BASE_FONT);
         gbc.gridx = 0;
@@ -221,11 +214,9 @@ public class ConfigWindow extends JFrame {
         gbc.gridx = 1;
         panel.add(chatIdField, gbc);
 
-        // Подсказки
         botTokenField.setToolTipText("<html>Токен вашего Telegram бота<br>Пример: 123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11</html>");
         chatIdField.setToolTipText("<html>ID чата для отправки уведомлений<br>Пример: -1001234567890</html>");
 
-        // Добавим пустое пространство внизу
         gbc.gridx = 0;
         gbc.gridy = 3;
         gbc.gridwidth = 2;
@@ -243,11 +234,9 @@ public class ConfigWindow extends JFrame {
         messagesTabbedPane.setFont(HEADER_FONT.deriveFont(16f));
         messagesTabbedPane.setBackground(new Color(245, 245, 245));
 
-        // Общие настройки для всех подвкладок
         Font areaFont = BASE_FONT.deriveFont(14f);
         Color borderColor = new Color(200, 200, 200);
 
-        // Вкладка "Успех"
         JPanel successPanel = createMessageSubPanel(
                 "Успех",
                 successMessagesArea,
@@ -256,7 +245,6 @@ public class ConfigWindow extends JFrame {
                 borderColor
         );
 
-        // Вкладка "Ошибки"
         JPanel failurePanel = createMessageSubPanel(
                 "Ошибки",
                 failureMessagesArea,
@@ -265,7 +253,6 @@ public class ConfigWindow extends JFrame {
                 borderColor
         );
 
-        // Вкладка "Отчеты"
         JPanel reportPanel = createMessageSubPanel(
                 "Отчеты",
                 reportMessagesArea,
@@ -287,20 +274,17 @@ public class ConfigWindow extends JFrame {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // Заголовок
         JLabel label = new JLabel(title);
         label.setFont(HEADER_FONT.deriveFont(Font.BOLD, 16f));
         label.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
         panel.add(label, BorderLayout.NORTH);
 
-        // Текстовая область
         area = new JTextArea(15, 50);
         area.setFont(areaFont);
         area.setLineWrap(true);
         area.setWrapStyleWord(true);
         area.setText(String.join("\n", messages));
 
-        // Скралл-панель с кастомным оформлением
         JScrollPane scrollPane = new JScrollPane(area);
         scrollPane.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createTitledBorder(
@@ -310,7 +294,6 @@ public class ConfigWindow extends JFrame {
                 BorderFactory.createEmptyBorder(5, 5, 5, 5)
         ));
 
-        // Подсказка
         area.setToolTipText("<html><body style='width: 300px'>"
                 + "Вводите сообщения, каждое с новой строки.<br>"
                 + "Пример:<br>"
@@ -320,7 +303,6 @@ public class ConfigWindow extends JFrame {
 
         panel.add(scrollPane, BorderLayout.CENTER);
 
-        // Нижняя панель с примером
         JPanel examplePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         examplePanel.setBorder(BorderFactory.createEmptyBorder(10, 5, 0, 5));
         JLabel exampleLabel = new JLabel("Пример: \"Операция выполнена успешно в %time%\"");
@@ -341,7 +323,6 @@ public class ConfigWindow extends JFrame {
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Заголовок
         JLabel header = new JLabel("Настройки путей");
         header.setFont(HEADER_FONT.deriveFont(18f));
         header.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
@@ -350,7 +331,6 @@ public class ConfigWindow extends JFrame {
         gbc.gridy = 0;
         panel.add(header, gbc);
 
-        // Поле пути
         JLabel pathLabel = new JLabel("Путь к изображениям:");
         pathLabel.setFont(BASE_FONT);
         gbc.gridwidth = 1;
@@ -367,19 +347,15 @@ public class ConfigWindow extends JFrame {
         gbc.gridx = 1;
         panel.add(picsPathField, gbc);
 
-        // Кнопка обзора
         JButton browseBtn = new JButton("Обзор...");
         browseBtn.addActionListener(e -> choosePicsDirectory()); // ВОССТАНАВЛИВАЕМ ОБРАБОТЧИК
         styleButton(browseBtn, PRIMARY_COLOR, middleGray);
         browseBtn.setPreferredSize(new Dimension(120, 35));
 
-
         gbc.gridx = 2;
         gbc.fill = GridBagConstraints.NONE;
         panel.add(browseBtn, gbc);
 
-
-        // Кнопка README
         JButton openReadmeBtn = new JButton("Открыть руководство");
         openReadmeBtn.addActionListener(e -> openReadme());
         styleButton(openReadmeBtn, WARNING_COLOR, middleGray);
@@ -390,19 +366,16 @@ public class ConfigWindow extends JFrame {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         panel.add(openReadmeBtn, gbc);
 
-        // Разделитель
         JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
         separator.setForeground(new Color(220, 220, 220));
         gbc.gridy = 3;
         gbc.insets = new Insets(20, 0, 10, 0);
         panel.add(separator, gbc);
 
-        // Подсказки
         picsPathField.setToolTipText("<html>Укажите полный путь к папке с изображениями<br>Пример: C:\\Users\\User\\Pictures\\BotImages</html>");
         browseBtn.setToolTipText("Выбрать папку через проводник");
         openReadmeBtn.setToolTipText("Открыть файл с инструкциями в формате PDF");
 
-        // Пустое пространство
         gbc.gridy = 4;
         gbc.weighty = 1.0;
         panel.add(Box.createGlue(), gbc);
@@ -411,7 +384,6 @@ public class ConfigWindow extends JFrame {
     }
 
     private void styleButton(JButton button, Color bgColor, Color textColor) {
-        // Основные настройки
 
         button.setFont(BUTTON_FONT.deriveFont(Font.BOLD));
         button.setForeground(textColor);
@@ -420,16 +392,13 @@ public class ConfigWindow extends JFrame {
         button.setOpaque(true);
         button.setBorderPainted(false);
 
-        // Плавные анимации
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-        // Тень и форма
         Border emptyBorder = BorderFactory.createEmptyBorder(10, 25, 10, 25);
         Border lineBorder = BorderFactory.createLineBorder(bgColor.darker(), 1);
         Border compoundBorder = BorderFactory.createCompoundBorder(lineBorder, emptyBorder);
         button.setBorder(compoundBorder);
 
-        // Анимация при наведении
         button.addMouseListener(new MouseAdapter() {
             private final Timer timer = new Timer(10, e -> {
                 float alpha = button.getModel().isRollover() ?
@@ -458,7 +427,6 @@ public class ConfigWindow extends JFrame {
             }
         });
 
-        // Эффект при нажатии
         button.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
                 KeyStroke.getKeyStroke("SPACE"), "none"
         );
@@ -512,14 +480,12 @@ public class ConfigWindow extends JFrame {
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Инициализация компонентов
         attemptsSpinner = new JSpinner(new SpinnerNumberModel(
                 config.getAttemptsAmount(), 1, 100, 1));
 
         sleepDurationSpinner = new JSpinner(new SpinnerNumberModel(
                 config.getSleepDurationMinutes(), 1, 1440, 1));
 
-        // Чекбоксы
         successCheck = new JCheckBox("Уведомлять об успехе", config.isSuccessNotification());
         failureCheck = new JCheckBox("Уведомлять о неудаче", config.isFailureNotification());
         reportCheck = new JCheckBox("Отправлять отчет", config.isReportNotification());
@@ -527,11 +493,9 @@ public class ConfigWindow extends JFrame {
         takeTheMailCheck = new JCheckBox("Взять почту", config.isTakeTheMailEnabled());
         afterMainMonitoringCheck = new JCheckBox("Включить мониторинг после всего", config.isAfterMainMonitoringEnabled());
 
-        // Добавление компонентов
         addLabeledComponent(panel, "Количество попыток:", attemptsSpinner, 0, gbc);
         addLabeledComponent(panel, "Длительность сна (минут):", sleepDurationSpinner, 1, gbc);
 
-        // Чекбоксы
         gbc.gridx = 0;
         gbc.gridwidth = 2;
         addCheckbox(panel, successCheck, 2, gbc);
@@ -585,7 +549,6 @@ public class ConfigWindow extends JFrame {
                 BorderFactory.createMatteBorder(1, 1, 3, 1, new Color(200, 200, 200)),
                 BorderFactory.createEmptyBorder(12, 30, 12, 30)
         ));
-        // Добавим принудительное обновление
         monitoringToggleButton.revalidate();
         monitoringToggleButton.repaint();
         monitoringToggleButton.setContentAreaFilled(true);
@@ -621,7 +584,6 @@ public class ConfigWindow extends JFrame {
         monitoringToggleButton.setForeground(middleGray);
         monitoringToggleButton.setText(config.isMonitoringEnabled() ? "Деактивировать" : "Активировать");
 
-        // Принудительное обновление
         monitoringToggleButton.revalidate();
         monitoringToggleButton.repaint();
     }
@@ -645,7 +607,6 @@ public class ConfigWindow extends JFrame {
     }
 
     private void saveConfig(ActionEvent e) {
-        // Сохранение конфига (прежний код)
         config.setAttemptsAmount((Integer) attemptsSpinner.getValue());
         config.setSleepDurationMinutes((Integer) sleepDurationSpinner.getValue());
         config.setSuccessNotification(successCheck.isSelected());
@@ -670,17 +631,12 @@ public class ConfigWindow extends JFrame {
     private void showConfirmationPanel() {
         getContentPane().removeAll();
 
-        // Основная панель для анимации
         JLayeredPane animationPane = new JLayeredPane();
         animationPane.setPreferredSize(getSize());
 
-        // Счетчик для чередования цветов
         AtomicInteger colorCounter = new AtomicInteger(0);
-
-        // Переменная для ускорения
         AtomicInteger delay = new AtomicInteger(100);
 
-        // Первоначальная надпись в центре
         JLabel centerLabel =
                 createAnimatedLabel(getWidth()/2, getHeight()/2, colorCounter.getAndIncrement() % 2);
         animationPane.add(centerLabel, JLayeredPane.DEFAULT_LAYER);
@@ -689,11 +645,9 @@ public class ConfigWindow extends JFrame {
         revalidate();
         repaint();
 
-        // Таймер для анимации
         Timer spreadTimer = new Timer(delay.get(), new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Добавляем 5 новых меток
                 for(int i = 0; i < 5; i++) {
                     JLabel label = createAnimatedLabel(
                             (int)(Math.random() * getWidth()),
@@ -704,7 +658,6 @@ public class ConfigWindow extends JFrame {
                     animationPane.moveToFront(label);
                 }
 
-                // Ускоряем анимацию
                 if(delay.get() > 20) {
                     delay.set(delay.get() - 2);
                     ((Timer)e.getSource()).setDelay(delay.get());
@@ -715,11 +668,9 @@ public class ConfigWindow extends JFrame {
             }
         });
 
-        // Таймер для завершения работы
         Timer exitTimer = new Timer(2000, e -> System.exit(0));
         exitTimer.setRepeats(false);
 
-        // Запускаем таймеры
         spreadTimer.start();
         exitTimer.start();
     }
@@ -744,16 +695,14 @@ public class ConfigWindow extends JFrame {
             label.setFont(customFont);
         }
 
-        // Чередуем цвета: 0 - белый, 1 - красный
         Color startColor = colorType == 0 ?
-                new Color(0, 180, 76, 250):
-                new Color(255, 50, 50, 200);
+                new Color(0, 210, 76, 250):
+                new Color(235, 7, 58, 250);
 
         label.setForeground(startColor);
         label.setSize(label.getPreferredSize());
         label.setLocation(x - label.getWidth()/2, y - label.getHeight()/2);
 
-        // Анимация исчезновения с ускорением
         Timer fadeTimer = new Timer(50, new ActionListener() {
             private float alpha = 200;
             private int yOffset = 0;
@@ -788,18 +737,17 @@ public class ConfigWindow extends JFrame {
     class BackgroundPanel extends JPanel {
         private final Image backgroundImage;
         private final float transparency;
-        private Color edgeColor = Color.WHITE; // Цвет для заполнения боковых областей
+        private Color edgeColor = Color.WHITE;
 
         public BackgroundPanel(Image backgroundImage, float transparency) {
             this.backgroundImage = backgroundImage;
             this.transparency = transparency;
             setLayout(new BorderLayout());
-            calculateEdgeColor(); // Автоматический расчет цвета краев
+            calculateEdgeColor();
         }
 
         private void calculateEdgeColor() {
             try {
-                // Берем цвет из левого верхнего угла изображения
                 BufferedImage bufferedImage = (BufferedImage) backgroundImage;
                 int rgb = bufferedImage.getRGB(0, 0);
                 edgeColor = new Color(rgb);
@@ -813,30 +761,24 @@ public class ConfigWindow extends JFrame {
             super.paintComponent(g);
             Graphics2D g2d = (Graphics2D) g.create();
 
-            // Заливаем фон цветом краев
             g2d.setColor(edgeColor);
             g2d.fillRect(0, 0, getWidth(), getHeight());
 
             if (backgroundImage != null) {
-                // Настройки рендеринга
                 g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                         RenderingHints.VALUE_INTERPOLATION_BILINEAR);
                 g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, transparency));
 
-                // Рассчет масштаба
                 double widthRatio = (double) getWidth() / backgroundImage.getWidth(null);
                 double heightRatio = (double) getHeight() / backgroundImage.getHeight(null);
                 double scale = Math.max(widthRatio, heightRatio);
 
-                // Новые размеры
                 int scaledWidth = (int) (backgroundImage.getWidth(null) * scale);
                 int scaledHeight = (int) (backgroundImage.getHeight(null) * scale);
 
-                // Позиционирование
                 int x = (getWidth() - scaledWidth) / 2;
                 int y = (getHeight() - scaledHeight) / 2;
 
-                // Рисуем масштабированное изображение
                 g2d.drawImage(backgroundImage, x, y, scaledWidth, scaledHeight, null);
             }
             g2d.dispose();
