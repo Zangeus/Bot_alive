@@ -1,22 +1,21 @@
 package Config;
 
 import javax.swing.*;
+import javax.swing.Timer;
 import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.util.Arrays;
-import java.util.Objects;
+import java.util.*;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import Waiters.Main;
 
 import org.w3c.dom.events.MouseEvent;
 
 public class ConfigWindow extends JFrame {
-    private static final LauncherConfig config = ConfigManager.loadConfig();
+    private final LauncherConfig config = ConfigManager.loadConfig();
     private final Color middleGray = Color.WHITE;//new Color(50, 50, 50);
 
     private JTextField botTokenField;
@@ -32,7 +31,6 @@ public class ConfigWindow extends JFrame {
     private JCheckBox mondayCheck;
     private JSpinner sleepDurationSpinner;
     private JCheckBox takeTheMailCheck;
-    private JCheckBox afterMainMonitoringCheck;
 
     private JLabel monitoringStatusLabel = new JLabel();
     private JButton monitoringToggleButton = new JButton();
@@ -43,7 +41,6 @@ public class ConfigWindow extends JFrame {
     private static final Color DANGER_COLOR = new Color(220, 80, 80);
     private static final Color WARNING_COLOR = new Color(255, 165, 0);
     private static final Color TEXT_COLOR = new Color(50, 50, 50);
-    private static final Color BACKGROUND_COLOR = new Color(245, 245, 245);
 
     // Шрифты
     private static final Font BASE_FONT = new Font("Segoe UI", Font.PLAIN, 14);
@@ -62,7 +59,7 @@ public class ConfigWindow extends JFrame {
         successMessagesArea = new JTextArea();
         failureMessagesArea = new JTextArea();
         reportMessagesArea = new JTextArea();
-
+        loadCustomFont();
         initUI();
     }
 
@@ -491,7 +488,6 @@ public class ConfigWindow extends JFrame {
         reportCheck = new JCheckBox("Отправлять отчет", config.isReportNotification());
         mondayCheck = new JCheckBox("Активировать проверки в понедельник", config.isMondayCheckEnabled());
         takeTheMailCheck = new JCheckBox("Взять почту", config.isTakeTheMailEnabled());
-        afterMainMonitoringCheck = new JCheckBox("Включить мониторинг после всего", config.isAfterMainMonitoringEnabled());
 
         addLabeledComponent(panel, "Количество попыток:", attemptsSpinner, 0, gbc);
         addLabeledComponent(panel, "Длительность сна (минут):", sleepDurationSpinner, 1, gbc);
@@ -502,19 +498,18 @@ public class ConfigWindow extends JFrame {
         addCheckbox(panel, failureCheck, 3, gbc);
         addCheckbox(panel, reportCheck, 4, gbc);
         addCheckbox(panel, mondayCheck, 5, gbc);
-        addCheckbox(panel, afterMainMonitoringCheck, 6, gbc);
-        addCheckbox(panel, takeTheMailCheck, 7, gbc);
+        addCheckbox(panel, takeTheMailCheck, 6, gbc);
 
         // Блок мониторинга
-        gbc.gridy = 8;
+        gbc.gridy = 7;
         gbc.weighty = 0.5;
         panel.add(Box.createGlue(), gbc);
 
-        gbc.gridy = 9;
+        gbc.gridy = 8;
         panel.add(createMonitoringPanel(), gbc);
 
         // Пустое пространство
-        gbc.gridy = 10;
+        gbc.gridy = 9;
         gbc.weighty = 1.0;
         panel.add(Box.createGlue(), gbc);
 
@@ -614,7 +609,6 @@ public class ConfigWindow extends JFrame {
         config.setReportNotification(reportCheck.isSelected());
         config.setMondayCheckEnabled(mondayCheck.isSelected());
         config.setTakeTheMailEnabled(takeTheMailCheck.isSelected());
-        config.setAfterMainMonitoringEnabled(afterMainMonitoringCheck.isSelected());
 
         config.setBotToken(botTokenField.getText());
         config.setChatId(chatIdField.getText());
@@ -628,108 +622,104 @@ public class ConfigWindow extends JFrame {
         showConfirmationPanel();
     }
 
-    private void showConfirmationPanel() {
-        getContentPane().removeAll();
-
-        JLayeredPane animationPane = new JLayeredPane();
-        animationPane.setPreferredSize(getSize());
-
-        AtomicInteger colorCounter = new AtomicInteger(0);
-        AtomicInteger delay = new AtomicInteger(100);
-
-        JLabel centerLabel =
-                createAnimatedLabel(getWidth()/2, getHeight()/2, colorCounter.getAndIncrement() % 2);
-        animationPane.add(centerLabel, JLayeredPane.DEFAULT_LAYER);
-
-        getContentPane().add(animationPane);
-        revalidate();
-        repaint();
-
-        Timer spreadTimer = new Timer(delay.get(), new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                for(int i = 0; i < 5; i++) {
-                    JLabel label = createAnimatedLabel(
-                            (int)(Math.random() * getWidth()),
-                            (int)(Math.random() * getHeight()),
-                            colorCounter.getAndIncrement() % 2
-                    );
-                    animationPane.add(label);
-                    animationPane.moveToFront(label);
-                }
-
-                if(delay.get() > 20) {
-                    delay.set(delay.get() - 2);
-                    ((Timer)e.getSource()).setDelay(delay.get());
-                }
-
-                animationPane.revalidate();
-                animationPane.repaint();
-            }
-        });
-
-        Timer exitTimer = new Timer(2000, e -> System.exit(0));
-        exitTimer.setRepeats(false);
-
-        spreadTimer.start();
-        exitTimer.start();
-    }
-
-    private static Font customFont;
-
-    static {
+    private Font customFont;
+    private void loadCustomFont() {
         try (InputStream is = new FileInputStream(config.getPicsToStartPath() + File.separator + "font.ttf")) {
             customFont = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(26f);
         } catch (Exception e) {
-            customFont = null; // Фоллбэк на стандартный шрифт
+            customFont = new Font("Meiryo", Font.BOLD, 26);
+            System.err.println("Error loading custom font: " + e.getMessage());
         }
     }
 
-    private JLabel createAnimatedLabel(int x, int y, int colorType) {
-        JLabel label = new JLabel("セーブ完了");
 
-        Font defaultFont = new Font(Font.SANS_SERIF, Font.BOLD, 26);
-        label.setFont(defaultFont);
+    private void showConfirmationPanel() {
+        getContentPane().removeAll();
 
-        if (customFont != null) {
-            label.setFont(customFont);
-        }
+        // Создаем кастомную панель для анимации
+        AnimationPanel animationPanel = new AnimationPanel();
+        getContentPane().add(animationPanel);
+        revalidate();
+        repaint();
 
-        Color startColor = colorType == 0 ?
-                new Color(0, 210, 76, 250):
-                new Color(235, 7, 58, 250);
-
-        label.setForeground(startColor);
-        label.setSize(label.getPreferredSize());
-        label.setLocation(x - label.getWidth()/2, y - label.getHeight()/2);
-
-        Timer fadeTimer = new Timer(50, new ActionListener() {
-            private float alpha = 200;
-            private int yOffset = 0;
-            private float speed = 1.5f;
+        // Главный таймер анимации
+        Timer mainTimer = new Timer(10, new ActionListener() {
+            final Random rand = new Random();
+            int frameCount = 0;
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                alpha -= 4;
-                yOffset += speed;
-                speed *= 1.1;
+                if(frameCount % 3 == 0) {
+                    for(int i = 0; i < 6; i++) {
+                        JLabel label = createAnimatedLabel(rand.nextInt(2));
+                        label.setSize(label.getPreferredSize());
+                        label.setLocation(
+                                rand.nextInt(getWidth() - label.getWidth()),
+                                getHeight() - label.getHeight()
+                        );
+                        animationPanel.addLabel(label);
+                    }
+                }
 
-                if(alpha <= 0) {
+                animationPanel.updateLabels();
+                frameCount++;
+
+                if(frameCount > 60) {
                     ((Timer)e.getSource()).stop();
-                    label.setVisible(false);
-                } else {
-                    label.setForeground(new Color(
-                            label.getForeground().getRed(),
-                            label.getForeground().getGreen(),
-                            label.getForeground().getBlue(),
-                            (int)alpha
-                    ));
-                    label.setLocation(label.getX(), label.getY() - (int)yOffset);
-                    label.repaint();
+                    dispose();
                 }
             }
         });
-        fadeTimer.start();
+        mainTimer.start();
+    }
+
+    // Кастомный класс панели с необходимыми методами
+    class AnimationPanel extends JPanel {
+        private final ArrayList<JLabel> activeLabels = new ArrayList<>();
+
+        public AnimationPanel() {
+            setLayout(null);
+            setOpaque(false);
+        }
+
+        public void addLabel(JLabel label) {
+            activeLabels.add(label);
+            add(label);
+        }
+
+        public void updateLabels() {
+            Iterator<JLabel> iterator = activeLabels.iterator();
+            while(iterator.hasNext()) {
+                JLabel label = iterator.next();
+                Point pos = label.getLocation();
+                Color color = label.getForeground();
+
+                // Увеличиваем скорость перемещения (было 3, стало 6)
+                label.setLocation(pos.x, pos.y - 6);
+
+                // Увеличиваем скорость затухания (было 4, стало 8)
+                label.setForeground(new Color(
+                        color.getRed(),
+                        color.getGreen(),
+                        color.getBlue(),
+                        Math.max(0, color.getAlpha() - 8)
+                ));
+
+                if(color.getAlpha() <= 8) {
+                    remove(label);
+                    iterator.remove();
+                }
+            }
+            repaint();
+        }
+    }
+
+    private JLabel createAnimatedLabel(int colorType) {
+        JLabel label = new JLabel("セーブ完了");
+        label.setFont(customFont != null ? customFont : new Font("Meiryo", Font.BOLD, 26));
+        label.setForeground(colorType == 0
+                ? new Color(0, 210, 76, 255)
+                : new Color(235, 7, 58, 255));
 
         return label;
     }

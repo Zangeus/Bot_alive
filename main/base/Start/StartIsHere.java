@@ -8,7 +8,7 @@ import static java.lang.Thread.sleep;
 
 public class StartIsHere {
 
-    public static boolean start() throws InterruptedException {
+    public static boolean start() {
         activateWindows();
 
         if (!findAndClickWithOneMessageAndDelay("start.png"

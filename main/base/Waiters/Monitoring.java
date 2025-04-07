@@ -1,10 +1,14 @@
 package Waiters;
 
+import Config.ConfigManager;
+import Config.LauncherConfig;
 import End.CloseProcess;
 import Start.StartIsHere;
 
 import java.awt.*;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.concurrent.TimeUnit;
 
 import static Waiters.ClickByCoords.activateAndClick;
@@ -24,19 +28,20 @@ public class Monitoring {
     private static final String MINUTES = "MINUTES";
     private static final String SECONDS = "SECONDS";
     private static boolean picToSend = false;
+    private static final LauncherConfig config = ConfigManager.loadConfig();
 
     public static void monitorStart() {
         while (true) {
             activateWindow(src);
             if (findAndClickScreenless("critical.png")) {
                 refresh();
-                sleep(10, MINUTES);
+                sleep(20, MINUTES);
                 continue;
             }
 
             if (findAndClickScreenless("critical_2.png")) {
                 restart();
-                sleep(10, MINUTES);
+                sleep(20, MINUTES);
                 continue;
             }
 
@@ -49,16 +54,15 @@ public class Monitoring {
 
             picToSend = true;
             check(("overview.png"));
-            sleep(10, MINUTES);
+            sleep(20, MINUTES);
         }
     }
 
-    public static boolean monitorAfterMain() {
-        monitorStart();
-        return true;
-    }
-
     public static void monitor() {
+        if (!isProcessRunning()) {
+            StartIsHere.start();
+            sleep(config.getSleepDurationMinutes(), MINUTES);
+        }
         monitorStart();
         executeEmergencyProtocol();
     }
@@ -68,6 +72,7 @@ public class Monitoring {
     }
 
     private static void executeEmergencyProtocol() {
+        TakeTheMail.take();
         CloseProcess.terminateProcesses();
         performEmergencyShutdown();
     }
@@ -83,7 +88,7 @@ public class Monitoring {
     private static void refresh() {
         activateAndClick(MuMu, CLICK_POINTS, 3000);
         sleep(3, "SECONDS");
-        performClick(780, 675,0);
+        performClick(780, 675, 0);
 
         activateWindow(src);
         findAndClickWithOneMessage("start_button.png", "Не удалось найти кнопку запуска");
@@ -92,8 +97,12 @@ public class Monitoring {
     private static void sleep(int amount, String type) {
         try {
             switch (type) {
-                case MINUTES: TimeUnit.SECONDS.sleep(60L * amount); break;
-                case SECONDS: TimeUnit.SECONDS.sleep(amount); break;
+                case MINUTES:
+                    TimeUnit.SECONDS.sleep(60L * amount);
+                    break;
+                case SECONDS:
+                    TimeUnit.SECONDS.sleep(amount);
+                    break;
             }
         } catch (InterruptedException e) {
             System.out.println(e.getMessage());
@@ -112,13 +121,30 @@ public class Monitoring {
     private static void restart() {
         CloseProcess.terminateProcesses();
         for (int i = 0; i <= 3; i++) {
-            try {
-                if (StartIsHere.start()) break;
-                else if (i == 3) TelegramBotSender
-                        .sendNoteMessage("Не удалось запустить бота");
-            } catch (InterruptedException e) {
-                System.out.println(e.getMessage());
+            if (StartIsHere.start()) break;
+            else if (i == 3) TelegramBotSender
+                    .sendNoteMessage("Не удалось запустить бота");
+        }
+    }
+
+    private static boolean isProcessRunning() {
+        try {
+            String os = System.getProperty("os.name").toLowerCase();
+            String command = os.contains("win") ? "tasklist" : "ps -A";
+
+            Process process = Runtime.getRuntime().exec(command);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.contains(Monitoring.src)) {
+                    return true;
+                }
             }
+            reader.close();
+            return false;
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+            return false;
         }
     }
 }

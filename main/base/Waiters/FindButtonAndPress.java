@@ -12,13 +12,11 @@ import java.awt.event.InputEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.util.List;
-import java.util.Random;
 
 public class FindButtonAndPress {
     private static final LauncherConfig config = ConfigManager.loadConfig();
     public static final Robot robot;
-    private static final Random random = new Random();
-    private static double MATCH_THRESHOLD = 0.8;
+    private static final double MATCH_THRESHOLD = 0.8;
     private static final Object searchLock = new Object();
 
     static {

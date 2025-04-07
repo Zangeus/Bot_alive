@@ -28,15 +28,6 @@ public class LauncherConfig {
     private boolean mondayCheckEnabled = true;
     private boolean monitoringEnabled = true;
     private boolean takeTheMailEnabled = true;
-    private boolean afterMainMonitoringEnabled = true;
-
-    public boolean isAfterMainMonitoringEnabled() {
-        return afterMainMonitoringEnabled;
-    }
-
-    public void setAfterMainMonitoringEnabled(boolean afterMainMonitoringEnabled) {
-        this.afterMainMonitoringEnabled = afterMainMonitoringEnabled;
-    }
 
     public boolean isTakeTheMailEnabled() {
         return takeTheMailEnabled;

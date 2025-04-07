@@ -3,7 +3,6 @@ package End;
 import Config.ConfigManager;
 import Config.LauncherConfig;
 import Waiters.Extractor;
-import Waiters.Monitoring;
 import Waiters.TelegramBotSender;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef;
@@ -23,12 +22,7 @@ public class EndIsNear {
         try {
             focusApplicationWindow();
 
-            if (config.isAfterMainMonitoringEnabled())
-                if (Monitoring.monitorAfterMain()
-                        && findAndClickScreenless("checking.png")) {
-                    return findAndClickForTasks("tasks_done.png");
-                }
-            else if (config.isMondayCheckEnabled()
+            if (config.isMondayCheckEnabled()
             && LocalDateTime.now().getDayOfWeek() == DayOfWeek.MONDAY) {
                     for (int i = 0; i < 12; i++) {
                         focusApplicationWindow();

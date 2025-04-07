@@ -20,6 +20,7 @@ public class Launcher {
     }
 
     private static void startMainApplication(LauncherConfig config, String[] args) {
+
         if (!config.isMonitoringEnabled())
             Main.main(args);
         else Monitoring.monitor();
