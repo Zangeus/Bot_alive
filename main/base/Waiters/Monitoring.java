@@ -31,6 +31,19 @@ public class Monitoring {
     private static final LauncherConfig config = ConfigManager.loadConfig();
 
     public static void monitorStart() {
+
+        while (true) {
+            activateWindow(src);
+            if (findAndClickScreenless("critical_2.png")) {
+                restart();
+                sleep(config.getSleepDurationMinutes(), MINUTES);
+                continue;
+            }
+
+            if (findAndClickScreenless("tasks_done.png")) break;
+            sleep(5, MINUTES);
+        }
+
         while (true) {
             activateWindow(src);
             if (findAndClickScreenless("critical.png")) {
@@ -45,8 +58,7 @@ public class Monitoring {
                 continue;
             }
 
-            if (check("su_button.png") &&
-                    check("elites_farm.png")) {
+            if (check("su_button.png") && check("elites_farm.png")) {
                 check(("overview.png"));
                 if (picToSend) sendPhoto();
                 break;
