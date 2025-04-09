@@ -1,4 +1,4 @@
-package Waiters;
+package Utils;
 
 import Config.ConfigManager;
 import Config.LauncherConfig;

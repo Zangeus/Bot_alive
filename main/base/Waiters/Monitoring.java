@@ -11,10 +11,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.concurrent.TimeUnit;
 
-import static Waiters.ClickByCoords.activateAndClick;
-import static Waiters.ClickByCoords.activateWindow;
-import static Waiters.ClickByCoords.performClick;
-import static Waiters.FindButtonAndPress.*;
+import static Utils.ClickByCoords.activateAndClick;
+import static Utils.ClickByCoords.activateWindow;
+import static Utils.ClickByCoords.performClick;
+import static Utils.FindButtonAndPress.*;
 
 public class Monitoring {
     private static final String MuMu = "MuMu Player 12";

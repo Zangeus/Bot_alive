@@ -6,7 +6,7 @@ import Config.LauncherConfig;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 
-import static Waiters.ClickByCoords.*;
+import static Utils.ClickByCoords.*;
 import static java.lang.Thread.sleep;
 
 public class TakeTheMail {

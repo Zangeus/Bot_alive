@@ -1,7 +1,8 @@
-package Waiters;
+package Utils;
 
 import Config.ConfigManager;
 import Config.LauncherConfig;
+import Waiters.TelegramBotSender;
 import org.opencv.core.*;
 import org.opencv.core.Point;
 import org.opencv.imgcodecs.Imgcodecs;

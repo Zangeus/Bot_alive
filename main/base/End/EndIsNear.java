@@ -2,7 +2,7 @@ package End;
 
 import Config.ConfigManager;
 import Config.LauncherConfig;
-import Waiters.Extractor;
+import Utils.Extractor;
 import Waiters.TelegramBotSender;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef;
@@ -12,7 +12,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 
-import static Waiters.FindButtonAndPress.*;
+import static Utils.FindButtonAndPress.*;
 
 public class EndIsNear {
     private static final LauncherConfig config = ConfigManager.loadConfig();

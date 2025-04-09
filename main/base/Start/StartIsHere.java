@@ -3,7 +3,7 @@ package Start;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 
-import static Waiters.FindButtonAndPress.*;
+import static Utils.FindButtonAndPress.*;
 import static java.lang.Thread.sleep;
 
 public class StartIsHere {

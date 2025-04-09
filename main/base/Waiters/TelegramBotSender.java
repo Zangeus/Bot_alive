@@ -2,6 +2,7 @@ package Waiters;
 
 import Config.ConfigManager;
 import Config.LauncherConfig;
+import Utils.Extractor;
 
 import java.io.*;
 import java.net.*;
